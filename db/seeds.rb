@@ -5,3 +5,17 @@
 #
 #   cities = City.create([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create(name: 'Emanuel', city: cities.first)
+
+# GitLabからprojectを取得し、projectsテーブルを作成する
+Project.destroy_all
+projects = Gitlab.projects.sort_by {|p| p.id }
+projects.each do |project|
+  #unless Project.find_by(gitlab_id: project.gitlab_id)
+    Project.create({
+      name: project.name,
+      gitlab_id: project.id,
+      http_url_to_repo: project.http_url_to_repo,
+      ssh_url_to_repo: project.ssh_url_to_repo
+    })
+  #end
+end

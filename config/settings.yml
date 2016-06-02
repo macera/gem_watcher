@@ -1,0 +1,3 @@
+# projectをcloneする際の置き場
+path:
+  working_directory: "tmp/projects"
