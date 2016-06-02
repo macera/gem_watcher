@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160602054052) do
+ActiveRecord::Schema.define(version: 20160602080418) do
 
   create_table "plugins", force: :cascade do |t|
     t.string   "name"
@@ -28,9 +28,11 @@ ActiveRecord::Schema.define(version: 20160602054052) do
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
-    t.datetime "created_at",             null: false
-    t.datetime "updated_at",             null: false
-    t.integer  "gitlab_id",  default: 0, null: false
+    t.datetime "created_at",                    null: false
+    t.datetime "updated_at",                    null: false
+    t.integer  "gitlab_id",        default: 0,  null: false
+    t.string   "http_url_to_repo", default: "", null: false
+    t.string   "ssh_url_to_repo",  default: "", null: false
   end
 
 end
