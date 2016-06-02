@@ -1,3 +1,4 @@
 gitlab:
-  endpoint: 'http://localhost'
+  endpoint: 'http://localhost/api/v3'
   private_token: 'aaa'
+  sudo: 'user'
