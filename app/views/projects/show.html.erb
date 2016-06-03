@@ -1,3 +1,27 @@
 <h1><%= @project.name %></h1>
 
+<h2>新しいバージョンが入手可能な gem list</h2>
+<table>
+<tr>
+<th>gem</th>
+<th>最新のバージョン</th>
+<th>現在のバージョン</th>
+<th>固定</th>
+</tr>
+<tbody>
+<% @project.plugins.each do |plugin| %>
+  <tr>
+    <td><%= plugin.name %></td>
+    <td><%= plugin.newest %></td>
+    <td><%= plugin.installed %></td>
+    <td><%= plugin.requested %></td>
+  </tr>
+<% end %>
+</tbody>
+</table>
+
+<% if false %>
+<h2>Gemfile</h2>
+
 <%= simple_format @project.gemfile_content %>
+<% end %>

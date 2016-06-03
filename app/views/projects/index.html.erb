@@ -1,17 +1,22 @@
 <h1>Projects#index</h1>
 <p>Find me in app/views/projects/index.html.erb</p>
+<%= form_tag(update_all_projects_path, method: :patch) do %>
+  <%= submit_tag '更新', data: { disable_with: "しばらくお待ち下さい" } %>
+<% end %>
 <table>
 <tr>
 <th>Name</th>
 <th>GitLab ID</th>
-<th>Gemfile</th>
+<th>新しいバージョンが入手可能なgemの数</th>
+<th></th>
 </tr>
 <tbody>
 <% @projects.each do |project| %>
   <tr>
     <td><%= project.name %></td>
     <td><%= project.gitlab_id %></td>
-    <td><%= link_to 'Gemfile', project_path(project.id) if project.has_gemfile? %></td>
+    <td><%= project.plugins.count %></td>
+    <td><%= link_to '詳細', project_path(project.id) %></td>
   </tr>
 <% end %>
 </tbody>

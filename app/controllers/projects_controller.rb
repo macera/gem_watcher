@@ -7,6 +7,11 @@ class ProjectsController < ApplicationController
   def show
   end
 
+  def update_all
+    Project.update_all
+    redirect_to action: :index
+  end
+
   private
   def set_project
     @project = Project.find(params[:id])
