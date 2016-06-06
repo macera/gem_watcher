@@ -17,9 +17,10 @@ projects.each do |project|
       http_url_to_repo: project.http_url_to_repo,
       ssh_url_to_repo: project.ssh_url_to_repo
     )
+    model.save
+    model.generate_project_files # git clone
     if model.has_gemfile?
-      model.save
-      model.generate_project_files # git clone & bundle install
+      model.generate_gemfile_lock  # bundle install
       model.create_plugin_list     # bundle outdated
     end
   #end

@@ -11,6 +11,7 @@
 #  project_id :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
+#  group_type :string
 #
 # Indexes
 #
@@ -19,4 +20,7 @@
 
 class Plugin < ActiveRecord::Base
   belongs_to :project
+
+  scope :production, -> { where(group_type: nil) }
+
 end

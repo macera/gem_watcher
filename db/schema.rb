@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160602080418) do
+ActiveRecord::Schema.define(version: 20160606063311) do
 
   create_table "plugins", force: :cascade do |t|
     t.string   "name"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 20160602080418) do
     t.integer  "project_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string   "group_type"
   end
 
   add_index "plugins", ["project_id"], name: "index_plugins_on_project_id"

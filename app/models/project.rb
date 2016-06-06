@@ -43,10 +43,13 @@ class Project < ActiveRecord::Base
     Dir.chdir(path) do
       system("git clone #{ssh_url_to_repo}")
     end
+  end
 
+  # Gemfile.lockを作成する
+  def generate_gemfile_lock
     # Gemfile.lockが存在しない場合、Gemfile.lockを作成する
     unless has_gemfile_lock?
-      Dir.chdir("#{path}/#{name}") do
+      Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
         Bundler.with_clean_env do
           result, e, s = Open3.capture3("bundle install")
         end
@@ -94,8 +97,14 @@ class Project < ActiveRecord::Base
 
   # bundle outdatedの返却値を元にpluginのattributesを作成する
   def plugin_attributes(line)
+    # development, testのみのgemは除く
+    #lime =~ /in\sgroups?\s"(development|test)/
     plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-    attr = { 'name' => plugin_name }
+    group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
+    if group_type == 'default' or group_type.include?('production')
+      group_type = nil
+    end
+    attr = { 'name' => plugin_name, 'group_type' => group_type }
     versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
     versions.each do |v|
       tmp = v.scan(/(\S+)\s(.+)/).flatten
