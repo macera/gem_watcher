@@ -13,12 +13,12 @@
 require "open3"
 
 class Project < ActiveRecord::Base
-  has_many :plugins, dependent: :destroy
+  has_many :project_versions, dependent: :destroy
 
   def self.update_all
     Project.all.each do |project|
-      project.plugins.destroy_all
-      project.create_plugin_list
+      project.project_versions.destroy_all
+      project.create_project_version_list
     end
   end
 
@@ -57,8 +57,8 @@ class Project < ActiveRecord::Base
     end
   end
 
-  # 新しいバージョンが入手可能なgem情報を取得し、pluginsテーブルに保存
-  def create_plugin_list
+  # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルに保存
+  def create_project_version_list
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
@@ -66,7 +66,28 @@ class Project < ActiveRecord::Base
         gem_lines = []
         result.each_line do |line|
           if line.start_with?('  *')
-            create_plugin(line)
+            create_project_version(line)
+          end
+        end
+      end
+    end
+  end
+
+  # bundle listで所有するgem情報を取得しproject_versionテーブルに保存
+  # pluginが存在しない場合、pluginも保存する
+  def create_project_versions
+    path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
+    Dir.chdir(path) do
+      Bundler.with_clean_env do
+        result, e, s = Open3.capture3("bundle exec bundle list")
+        gem_lines = []
+        result.each_line do |line|
+          if line.start_with?('  * ')
+            value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
+            plugin = Plugin.find_or_create_by(name: value[0]) do |p|
+              p.get_source_code_uri
+            end
+            project_versions.create(name: value[0], installed: value[1], plugin_id: plugin.id)
           end
         end
       end
@@ -90,18 +111,18 @@ class Project < ActiveRecord::Base
     return false
   end
 
-  # bundle outdatedの返却値を元にpluginを作成する
-  def create_plugin(line)
-    plugins.create(plugin_attributes(line))
+  # bundle outdatedの返却値を元にproject_versionを作成する
+  def create_project_version(line)
+    project_versions.create(project_version_attributes(line))
   end
 
-  # bundle outdatedの返却値を元にpluginのattributesを作成する
-  def plugin_attributes(line)
+  # bundle outdatedの返却値を元にproject_versionのattributesを作成する
+  def project_version_attributes(line)
     # development, testのみのgemは除く
     #lime =~ /in\sgroups?\s"(development|test)/
     plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
     group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
-    if group_type == 'default' or group_type.include?('production')
+    if group_type == 'default' or (group_type && group_type.include?('production'))
       group_type = nil
     end
     attr = { 'name' => plugin_name, 'group_type' => group_type }
