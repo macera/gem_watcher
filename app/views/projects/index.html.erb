@@ -1,5 +1,5 @@
-<h1>Projects#index</h1>
-<p>Find me in app/views/projects/index.html.erb</p>
+<h1>プロジェクト一覧</h1>
+
 <%= form_tag(update_all_projects_path, method: :patch) do %>
   <%= submit_tag '更新', data: { disable_with: "しばらくお待ち下さい" } %>
 <% end %>
@@ -15,7 +15,7 @@
   <tr>
     <td><%= project.name %></td>
     <td><%= project.gitlab_id %></td>
-    <td><%= project.plugins.production.count %></td>
+    <td><%= project.project_versions.production.count %></td>
     <td><%= link_to '詳細', project_path(project.id) %></td>
   </tr>
 <% end %>

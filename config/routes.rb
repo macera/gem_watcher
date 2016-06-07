@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
 
+  get 'feeds/index'
+
+  get 'feeds/show'
+
   root 'projects#index'
 
   resources :projects, only: [:index, :show] do

@@ -1,4 +1,4 @@
-<h1><%= @project.name %></h1>
+<h1><%= @project.name %> 詳細情報</h1>
 
 <h2>新しいバージョンが入手可能な gem list</h2>
 <table>
@@ -9,7 +9,7 @@
 <th>固定</th>
 </tr>
 <tbody>
-<% @project.plugins.production.each do |plugin| %>
+<% @project.project_versions.production.each do |plugin| %>
   <tr>
     <td><%= plugin.name %></td>
     <td><%= plugin.newest %></td>

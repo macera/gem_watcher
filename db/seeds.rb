@@ -8,6 +8,7 @@
 
 # GitLabからprojectを取得し、projectsテーブルを作成する
 Project.destroy_all
+Plugin.destroy_all
 projects = Gitlab.projects.sort_by {|p| p.id }
 projects.each do |project|
   #unless Project.find_by(gitlab_id: project.gitlab_id)
@@ -21,7 +22,7 @@ projects.each do |project|
     model.generate_project_files # git clone
     if model.has_gemfile?
       model.generate_gemfile_lock  # bundle install
-      model.create_plugin_list     # bundle outdated
+      model.create_project_versions     # bundle outdated
     end
   #end
 end

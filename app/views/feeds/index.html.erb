@@ -1,0 +1,29 @@
+<h1>Feeds#index</h1>
+<p>Find me in app/views/feeds/index.html.erb</p>
+
+<table>
+  <tr>
+  <th>feed名</th>
+  <th>リリースバージョン</th>
+  <th>更新日</th>
+  <th>使用中のプロジェクト</th>
+  <th></th>
+  </tr>
+  <tbody>
+  <% @feeds.each do |feed| %>
+    <%# とりあえず最新の1件だけ %>
+    <% entry = feed.entries.first %>
+    <% next unless entry%>
+    <% uri = URI.join(feed.url, "/") %>
+    <% uri += entry.url %>
+    <tr>
+      <td><%= feed.title %></td>
+      <td><%= link_to(truncate(entry.title, length: 20), uri.to_s, target: "_blank") %></td>
+      <td><%= entry.updated %></td>
+      <td></td>
+      <td><%= 'pluginの詳細画面へのリンク' %></td>
+    </tr>
+
+  <% end %>
+  </tbody>
+</table>
