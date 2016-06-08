@@ -7,14 +7,38 @@
 <th>最新のバージョン</th>
 <th>現在のバージョン</th>
 <th>固定</th>
+<th></th>
 </tr>
 <tbody>
-<% @project.project_versions.production.each do |plugin| %>
+<% @project.project_versions.newest_versions.each do |version| %>
   <tr>
-    <td><%= plugin.name %></td>
-    <td><%= plugin.newest %></td>
-    <td><%= plugin.installed %></td>
-    <td><%= plugin.requested %></td>
+    <td><%= link_to version.name, version.plugin.source_code_uri %></td>
+    <td><%= version.newest %></td>
+    <td><%= version.installed %></td>
+    <td><%= version.requested %></td>
+    <td><%= link_to '詳細', plugin_path(version.plugin.id) %></td>
+  </tr>
+<% end %>
+</tbody>
+</table>
+
+<h2>最新の gem list</h2>
+<table>
+<tr>
+<th>gem</th>
+<th></th>
+<th>現在のバージョン</th>
+<th></th>
+<th></th>
+</tr>
+<tbody>
+<% @project.project_versions.updated_versions.each do |version| %>
+  <tr>
+    <td><%= link_to version.name, version.plugin.source_code_uri %></td>
+    <td><%= version.newest %></td>
+    <td><%= version.installed %></td>
+    <td><%= version.requested %></td>
+    <td><%= link_to '詳細', plugin_path(version.plugin.id) %></td>
   </tr>
 <% end %>
 </tbody>

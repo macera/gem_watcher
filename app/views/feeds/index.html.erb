@@ -20,7 +20,7 @@
       <td><%= feed.title %></td>
       <td><%= link_to(truncate(entry.title, length: 20), uri.to_s, target: "_blank") %></td>
       <td><%= entry.updated %></td>
-      <td></td>
+      <td><%= %></td>
       <td><%= 'pluginの詳細画面へのリンク' %></td>
     </tr>
 

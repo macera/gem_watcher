@@ -15,7 +15,7 @@
   <tr>
     <td><%= project.name %></td>
     <td><%= project.gitlab_id %></td>
-    <td><%= project.project_versions.production.count %></td>
+    <td><%= project.project_versions.newest_versions.count %></td>
     <td><%= link_to '詳細', project_path(project.id) %></td>
   </tr>
 <% end %>

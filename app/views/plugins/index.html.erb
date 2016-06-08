@@ -1,0 +1,24 @@
+<h1>Gem一覧</h1>
+
+<p>すべてのプロジェクトのgem一覧を表示</p>
+
+<table>
+<tr>
+<th>Name</th>
+<th>Project</th>
+<th></th>
+</tr>
+<tbody>
+<% @plugins.each do |plugin| %>
+  <tr>
+    <td><%= plugin.name %></td>
+    <td>
+      <% plugin.projects.each do |project| %>
+        <%= link_to project.name, project_path(project.id) %>
+      <% end %>
+    </td>
+    <td><%= link_to '詳細', plugin_path(plugin.id) %></td>
+  </tr>
+<% end %>
+</tbody>
+</table>

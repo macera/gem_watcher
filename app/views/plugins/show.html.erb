@@ -1,0 +1,15 @@
+<h1><%= @plugin.name %> 詳細情報</h1>
+
+<p>ホームページ: <%= link_to @plugin.name, @plugin.source_code_uri %></p>
+
+<h2>関連するプロジェクト一覧</h2>
+<% @plugin.project_versions.each do |version| %>
+  <p>
+    <%= link_to version.project.name, project_path(version.project.id) %>
+    <span style="<%= 'color:red;' if version.newest %>"><%= version.installed %></span>
+  </p>
+<% end %>
+</p>
+
+<%= 'ここにこのgemのセキュリティ情報を表示する' %>
+
