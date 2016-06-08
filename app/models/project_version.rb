@@ -24,5 +24,7 @@ class ProjectVersion < ActiveRecord::Base
   belongs_to :project
   belongs_to :plugin
 
-  scope :production, -> { where(group_type: nil) }
+  #scope :production, -> { where(group_type: nil) }
+  scope :newest_versions, -> { where.not(newest: nil) }
+  scope :updated_versions, -> { where(newest: nil) }
 end

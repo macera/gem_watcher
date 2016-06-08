@@ -14,11 +14,14 @@ require "open3"
 
 class Project < ActiveRecord::Base
   has_many :project_versions, dependent: :destroy
+  has_many :plugins, through: :project_versions
 
+  # gem情報更新
   def self.update_all
     Project.all.each do |project|
-      project.project_versions.destroy_all
-      project.create_project_version_list
+      #project.project_versions.destroy_all
+      #project.create_project_version_list
+      project.update_for_outdated_version
     end
   end
 
@@ -48,34 +51,18 @@ class Project < ActiveRecord::Base
   # Gemfile.lockを作成する
   def generate_gemfile_lock
     # Gemfile.lockが存在しない場合、Gemfile.lockを作成する
-    unless has_gemfile_lock?
+    #unless has_gemfile_lock?
       Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
         Bundler.with_clean_env do
-          result, e, s = Open3.capture3("bundle install")
+          result, e, s = Open3.capture3("bundle install --without development test")
         end
       end
-    end
-  end
-
-  # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルに保存
-  def create_project_version_list
-    path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
-    Dir.chdir(path) do
-      Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle exec bundle outdated")
-        gem_lines = []
-        result.each_line do |line|
-          if line.start_with?('  *')
-            create_project_version(line)
-          end
-        end
-      end
-    end
+    #end
   end
 
   # bundle listで所有するgem情報を取得しproject_versionテーブルに保存
   # pluginが存在しない場合、pluginも保存する
-  def create_project_versions
+  def create_plugins_and_versions
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
@@ -88,6 +75,22 @@ class Project < ActiveRecord::Base
               p.get_source_code_uri
             end
             project_versions.create(name: value[0], installed: value[1], plugin_id: plugin.id)
+          end
+        end
+      end
+    end
+  end
+
+  # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルを更新
+  def update_for_outdated_version
+    path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
+    Dir.chdir(path) do
+      Bundler.with_clean_env do
+        result, e, s = Open3.capture3("bundle exec bundle outdated")
+        gem_lines = []
+        result.each_line do |line|
+          if line.start_with?('  *')
+            update_project_version(line)
           end
         end
       end
@@ -112,20 +115,25 @@ class Project < ActiveRecord::Base
   end
 
   # bundle outdatedの返却値を元にproject_versionを作成する
-  def create_project_version(line)
-    project_versions.create(project_version_attributes(line))
+  # def create_project_version(line)
+  #   project_versions.create(project_version_attributes(line))
+  # end
+
+  def update_project_version(line)
+    attribute = project_version_attributes(line)
+    project_version = project_versions.where(name: attribute['name']).first
+    if project_version
+      # development, testのみのgemは除く
+      return unless production?(line)
+      project_version.update(attribute)
+    end
   end
+
 
   # bundle outdatedの返却値を元にproject_versionのattributesを作成する
   def project_version_attributes(line)
-    # development, testのみのgemは除く
-    #lime =~ /in\sgroups?\s"(development|test)/
     plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-    group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
-    if group_type == 'default' or (group_type && group_type.include?('production'))
-      group_type = nil
-    end
-    attr = { 'name' => plugin_name, 'group_type' => group_type }
+    attr = { 'name' => plugin_name }
     versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
     versions.each do |v|
       tmp = v.scan(/(\S+)\s(.+)/).flatten
@@ -134,6 +142,16 @@ class Project < ActiveRecord::Base
       attr.merge!({ state => version })
     end
     attr
+  end
+
+  # prodution環境で使うgemか調べる
+  def production?(line)
+    group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
+    if group_type == nil or
+      group_type == 'default' or
+      (group_type && group_type.include?('production'))
+      true
+    end
   end
 
 end

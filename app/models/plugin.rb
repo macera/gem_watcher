@@ -15,9 +15,12 @@
 #
 
 class Plugin < ActiveRecord::Base
-  #belongs_to :project
+  has_many :project_versions
+  has_many :projects, through: :project_versions
 
   # before_create :get_source_code_uri
+
+  #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
   def get_source_code_uri
     gem_info = Gems.info(name)

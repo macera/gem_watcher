@@ -22,7 +22,9 @@ projects.each do |project|
     model.generate_project_files # git clone
     if model.has_gemfile?
       model.generate_gemfile_lock  # bundle install
-      model.create_project_versions     # bundle outdated
+
+      model.create_plugins_and_versions # bundle list
+      model.update_for_outdated_version # bundle outdated
     end
   #end
 end
