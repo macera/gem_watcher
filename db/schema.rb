@@ -11,7 +11,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160608071846) do
+ActiveRecord::Schema.define(version: 20160608080002) do
+
+  create_table "entries", force: :cascade do |t|
+    t.string   "title"
+    t.datetime "published"
+    t.text     "content"
+    t.string   "url"
+    t.string   "author"
+    t.integer  "plugin_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "entries", ["plugin_id"], name: "index_entries_on_plugin_id"
 
   create_table "plugins", force: :cascade do |t|
     t.string   "name"

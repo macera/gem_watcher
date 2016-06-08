@@ -14,6 +14,7 @@
 class Plugin < ActiveRecord::Base
   has_many :project_versions
   has_many :projects, through: :project_versions
+  has_many :entries, dependent: :destroy
 
   # before_create :get_source_code_uri
 

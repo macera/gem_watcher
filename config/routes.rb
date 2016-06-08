@@ -1,12 +1,12 @@
 Rails.application.routes.draw do
 
-  root 'projects#index'
+  root 'feeds#index'
 
   resources :feeds, only: [:index, :show]
 
   resources :projects, only: [:index, :show] do
     collection do
-      patch :update_all
+      patch :update_all #不要になるかも
     end
   end
 

@@ -1,5 +1,5 @@
 <h1>Feeds#index</h1>
-<p>Find me in app/views/feeds/index.html.erb</p>
+<p>Find me in app/views/entrys/index.html.erb</p>
 
 <table>
   <tr>
@@ -10,18 +10,17 @@
   <th></th>
   </tr>
   <tbody>
-  <% @feeds.each do |feed| %>
-    <%# とりあえず最新の1件だけ %>
-    <% entry = feed.entries.first %>
-    <% next unless entry%>
-    <% uri = URI.join(feed.url, "/") %>
-    <% uri += entry.url %>
+  <% @entries.each do |entry| %>
     <tr>
-      <td><%= feed.title %></td>
-      <td><%= link_to(truncate(entry.title, length: 20), uri.to_s, target: "_blank") %></td>
-      <td><%= entry.updated %></td>
-      <td><%= %></td>
-      <td><%= 'pluginの詳細画面へのリンク' %></td>
+      <td><%= entry.plugin.name %></td>
+      <td><%= link_to(truncate(entry.title, length: 20), entry.url, target: "_blank") %></td>
+      <td><%= entry.published %></td>
+      <td>
+        <% entry.plugin.projects.each do |project| %>
+          <%= link_to project.name, project_path(project.id) %>
+        <% end %>
+      </td>
+      <td><%= link_to '詳細', plugin_path(entry.plugin.id) %></td>
     </tr>
 
   <% end %>
