@@ -74,7 +74,7 @@ class Project < ActiveRecord::Base
             plugin = Plugin.find_or_create_by(name: value[0]) do |p|
               p.get_source_code_uri
             end
-            project_versions.create(name: value[0], installed: value[1], plugin_id: plugin.id)
+            project_versions.create(installed: value[1], plugin_id: plugin.id)
           end
         end
       end
@@ -132,8 +132,9 @@ class Project < ActiveRecord::Base
 
   # bundle outdatedの返却値を元にproject_versionのattributesを作成する
   def project_version_attributes(line)
-    plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-    attr = { 'name' => plugin_name }
+    # plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
+    # attr = { 'name' => plugin_name }
+    attr = {}
     versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
     versions.each do |v|
       tmp = v.scan(/(\S+)\s(.+)/).flatten

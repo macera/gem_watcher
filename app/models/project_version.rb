@@ -3,7 +3,6 @@
 # Table name: project_versions
 #
 #  id         :integer          not null, primary key
-#  name       :string
 #  newest     :string
 #  installed  :string
 #  pre        :string
@@ -11,7 +10,6 @@
 #  plugin_id  :integer
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
-#  group_type :string
 #  requested  :string
 #
 # Indexes

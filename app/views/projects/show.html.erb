@@ -12,7 +12,7 @@
 <tbody>
 <% @project.project_versions.newest_versions.each do |version| %>
   <tr>
-    <td><%= link_to version.name, version.plugin.source_code_uri %></td>
+    <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
     <td><%= version.newest %></td>
     <td><%= version.installed %></td>
     <td><%= version.requested %></td>
@@ -34,7 +34,7 @@
 <tbody>
 <% @project.project_versions.updated_versions.each do |version| %>
   <tr>
-    <td><%= link_to version.name, version.plugin.source_code_uri %></td>
+    <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
     <td><%= version.newest %></td>
     <td><%= version.installed %></td>
     <td><%= version.requested %></td>

@@ -5,12 +5,9 @@
 #  id              :integer          not null, primary key
 #  name            :string
 #  newest          :string
-#  installed       :string
-#  requested       :string
 #  pre             :string
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
-#  group_type      :string
 #  source_code_uri :string
 #
 
