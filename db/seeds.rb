@@ -11,6 +11,7 @@ projects.each do |project|
       ssh_url_to_repo: project.ssh_url_to_repo,
       commit_id: Gitlab.commits(project.id).first.id
     )
+    model.gemfile_content = model.newest_gemfile if model.has_gemfile?
     model.save
     model.generate_project_files # git clone
     if model.has_gemfile?

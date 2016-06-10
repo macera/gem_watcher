@@ -10,6 +10,7 @@
 #  http_url_to_repo :string           default(""), not null
 #  ssh_url_to_repo  :string           default(""), not null
 #  commit_id        :string
+#  gemfile_content  :text
 #
 
 require "open3"
@@ -31,13 +32,15 @@ class Project < ActiveRecord::Base
     Gitlab.projects.each do |project|
       result = Project.find_by(gitlab_id: project.id)
       unless result
-        model = Project.create(
+        model = Project.new(
           name: project.name,
           gitlab_id: project.id,
           http_url_to_repo: project.http_url_to_repo,
           ssh_url_to_repo:  project.ssh_url_to_repo,
           commit_id: Gitlab.commits(project.id).first.id
         )
+        model.gemfile_content = model.newest_gemfile if model.has_gemfile?
+        model.save
         model.generate_project_files        # git clone
         if model.has_gemfile?
           model.generate_gemfile_lock       # bundle install
@@ -59,17 +62,13 @@ class Project < ActiveRecord::Base
   end
 
   # Gemfileの内容を返す
-  def gemfile_content
-    Gitlab.file_contents(gitlab_id, 'Gemfile')
+  def newest_gemfile
+    Gitlab.file_contents(gitlab_id, 'Gemfile').encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
   end
 
   # Gemfileが変更されているか
   def updated_gemfile?
-    diff = Gitlab.commit_diff(gitlab_id, commit_id)
-    diff.each do |file|
-      return true if file.new_new_path == 'Gemfile'
-    end
-    return false
+    has_gemfile? && gemfile_content != newest_gemfile
   end
 
   # projectのディレクトリを作成
@@ -86,7 +85,7 @@ class Project < ActiveRecord::Base
       Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
         system("git pull origin master")
       end
-      self.update(commit_id: Gitlab.commits(project.id).first.id)
+      self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
       # project_versionとpluginテーブルを更新する
       self.update_plugins_and_versions
     end
@@ -139,17 +138,17 @@ class Project < ActiveRecord::Base
               end
               project_versions.create(installed: value[1], plugin_id: plugin.id)
             end
-            names << line[0]
+            names << value[0]
           end
         end
         # 削除すべきgemがあれば削除する
         project_versions.each do |version|
           unless names.include?(version.plugin.name)
-            plugin_id = version.plugin.id
+            target_gem = version.plugin
             version.destroy
             # versionが1件もないpluginの場合削する
-            if plugin.project_versions.blank?
-              plugin.destroy
+            if target_gem.project_versions.blank?
+              target_gem.destroy
             end
           end
         end

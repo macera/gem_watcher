@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160610021013) do
+ActiveRecord::Schema.define(version: 20160610070619) do
 
   create_table "entries", force: :cascade do |t|
     t.string   "title"
@@ -57,6 +57,7 @@ ActiveRecord::Schema.define(version: 20160610021013) do
     t.string   "http_url_to_repo", default: "", null: false
     t.string   "ssh_url_to_repo",  default: "", null: false
     t.string   "commit_id"
+    t.text     "gemfile_content"
   end
 
   create_table "security_entries", force: :cascade do |t|
