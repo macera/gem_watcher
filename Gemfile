@@ -46,7 +46,7 @@ gem 'nokogiri'
 gem 'open_uri_redirections'
 
 # Use ActiveModel has_secure_password
-#gem 'bcrypt', '~> 3.1.7' # テストのため追加します
+gem 'bcrypt', '~> 3.1.7' # テストのため追加します
 
 # Use Unicorn as the app server
 # gem 'unicorn'
