@@ -18,12 +18,10 @@ class Project < ActiveRecord::Base
   has_many :project_versions, dependent: :destroy
   has_many :plugins, through: :project_versions
 
-  # project更新
-  # plugin 更新
-  #
+  # project plugin project_version 更新
   def self.update_all
     Project.all.each do |project|
-      #project.update_project_files         # create or destroy plugin, project_version
+      project.update_project_files         # create or destroy plugin, project_version
       project.update_for_outdated_version  # update project_version
     end
   end
@@ -90,8 +88,7 @@ class Project < ActiveRecord::Base
       end
       self.update(commit_id: Gitlab.commits(project.id).first.id)
       # project_versionとpluginテーブルを更新する
-      # self.project_versions.destroy_all
-      # self.update_for_outdated_version
+      self.update_plugins_and_versions
     end
   end
 
