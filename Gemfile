@@ -47,8 +47,6 @@ gem 'open_uri_redirections'
 
 #gem 'kaminari'
 
-gem 'react-rails' # 更新テスト
-
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
