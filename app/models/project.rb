@@ -23,9 +23,30 @@ class Project < ActiveRecord::Base
   #
   def self.update_all
     Project.all.each do |project|
-      #project. # add_project
-      project.update_project_files         # create or destroy plugin, project_version
+      #project.update_project_files         # create or destroy plugin, project_version
       project.update_for_outdated_version  # update project_version
+    end
+  end
+
+  # GitLabで新しく追加されたプロジェクトを管理下に追加
+  def self.add_projects
+    Gitlab.projects.each do |project|
+      result = Project.find_by(gitlab_id: project.id)
+      unless result
+        model = Project.create(
+          name: project.name,
+          gitlab_id: project.id,
+          http_url_to_repo: project.http_url_to_repo,
+          ssh_url_to_repo:  project.ssh_url_to_repo,
+          commit_id: Gitlab.commits(project.id).first.id
+        )
+        model.generate_project_files        # git clone
+        if model.has_gemfile?
+          model.generate_gemfile_lock       # bundle install
+          model.create_plugins_and_versions # bundle list
+          model.update_for_outdated_version # bundle outdated
+        end
+      end
     end
   end
 
@@ -74,16 +95,13 @@ class Project < ActiveRecord::Base
     end
   end
 
-  # Gemfile.lockを作成する
+  # Gemfile.lockを作成する(productionのみ取り出すため)
   def generate_gemfile_lock
-    # Gemfile.lockが存在しない場合、Gemfile.lockを作成する
-    #unless has_gemfile_lock?
-      Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-        Bundler.with_clean_env do
-          result, e, s = Open3.capture3("bundle install --without development test")
-        end
+    Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
+      Bundler.with_clean_env do
+        result, e, s = Open3.capture3("bundle install --without development test")
       end
-    #end
+    end
   end
 
   # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
@@ -177,17 +195,19 @@ class Project < ActiveRecord::Base
 
   def update_project_version(line)
     attribute = project_version_attributes(line)
-    project_version = project_versions.where(name: attribute['name']).first
+    project_version = project_versions.joins(:plugin).where('plugins.name' => attribute['name']).first
     if project_version
       # development, testのみのgemは除く
       return unless production?(line)
+      attribute.delete('name')
       project_version.update(attribute)
     end
   end
 
   # bundle outdatedの返却値を元にproject_versionのattributesを作成する
   def project_version_attributes(line)
-    attr = {}
+    plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
+    attr = { 'name' => plugin_name }
     versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
     versions.each do |v|
       tmp = v.scan(/(\S+)\s(.+)/).flatten
