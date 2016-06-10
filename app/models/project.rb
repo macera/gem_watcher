@@ -87,7 +87,7 @@ class Project < ActiveRecord::Base
       end
       self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
       # project_versionとpluginテーブルを更新する
-      self.update_plugins_and_versions
+      update_plugins_and_versions
     end
   end
 
@@ -105,7 +105,7 @@ class Project < ActiveRecord::Base
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle exec bundle list")
+        result, e, s = Open3.capture3("bundle list")
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
@@ -125,7 +125,13 @@ class Project < ActiveRecord::Base
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle exec bundle list")
+        result, e, s = Open3.capture3("bundle list")
+        if e.present?
+          p "コマンドエラーが発生しました: #{name}"
+          p e
+          p result
+          next
+        end
         names = []
         # 新規gemがあれば追加する
         result.each_line do |line|
