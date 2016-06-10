@@ -16,7 +16,8 @@ projects.each do |project|
       name: project.name,
       gitlab_id: project.id,
       http_url_to_repo: project.http_url_to_repo,
-      ssh_url_to_repo: project.ssh_url_to_repo
+      ssh_url_to_repo: project.ssh_url_to_repo,
+      commit_id: Gitlab.commits(project.id).first.id
     )
     model.save
     model.generate_project_files # git clone

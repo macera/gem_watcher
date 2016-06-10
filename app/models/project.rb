@@ -9,19 +9,23 @@
 #  gitlab_id        :integer          default(0), not null
 #  http_url_to_repo :string           default(""), not null
 #  ssh_url_to_repo  :string           default(""), not null
+#  commit_id        :string
 #
+
 require "open3"
 
 class Project < ActiveRecord::Base
   has_many :project_versions, dependent: :destroy
   has_many :plugins, through: :project_versions
 
-  # gem情報更新
+  # project更新
+  # plugin 更新
+  #
   def self.update_all
     Project.all.each do |project|
-      #project.project_versions.destroy_all
-      #project.create_project_version_list
-      project.update_for_outdated_version
+      #project. # add_project
+      project.update_project_files         # create or destroy plugin, project_version
+      project.update_for_outdated_version  # update project_version
     end
   end
 
@@ -40,11 +44,33 @@ class Project < ActiveRecord::Base
     Gitlab.file_contents(gitlab_id, 'Gemfile')
   end
 
+  # Gemfileが変更されているか
+  def updated_gemfile?
+    diff = Gitlab.commit_diff(gitlab_id, commit_id)
+    diff.each do |file|
+      return true if file.new_new_path == 'Gemfile'
+    end
+    return false
+  end
+
   # projectのディレクトリを作成
   def generate_project_files
     path = "#{Rails.root}/#{Settings.path.working_directory}"
     Dir.chdir(path) do
       system("git clone #{ssh_url_to_repo}")
+    end
+  end
+
+  # リポジトリ更新(Gemfileを更新するため)
+  def update_project_files
+    if updated_gemfile?
+      Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
+        system("git pull origin master")
+      end
+      self.update(commit_id: Gitlab.commits(project.id).first.id)
+      # project_versionとpluginテーブルを更新する
+      # self.project_versions.destroy_all
+      # self.update_for_outdated_version
     end
   end
 
@@ -60,14 +86,12 @@ class Project < ActiveRecord::Base
     #end
   end
 
-  # bundle listで所有するgem情報を取得しproject_versionテーブルに保存
-  # pluginが存在しない場合、pluginも保存する
+  # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
   def create_plugins_and_versions
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
         result, e, s = Open3.capture3("bundle exec bundle list")
-        gem_lines = []
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
@@ -81,13 +105,50 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
+  # 既存のgemが削除されたら、project_version削除
+  def update_plugins_and_versions
+    path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
+    Dir.chdir(path) do
+      Bundler.with_clean_env do
+        result, e, s = Open3.capture3("bundle exec bundle list")
+        names = []
+        # 新規gemがあれば追加する
+        result.each_line do |line|
+          if line.start_with?('  * ')
+            value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
+            version = project_versions.joins(:plugin).where('plugins.name' => value[0]).first
+            unless version
+              plugin = Plugin.find_or_create_by(name: value[0]) do |p|
+                p.get_source_code_uri
+              end
+              project_versions.create(installed: value[1], plugin_id: plugin.id)
+            end
+            names << line[0]
+          end
+        end
+        # 削除すべきgemがあれば削除する
+        project_versions.each do |version|
+          unless names.include?(version.plugin.name)
+            plugin_id = version.plugin.id
+            version.destroy
+            # versionが1件もないpluginの場合削する
+            if plugin.project_versions.blank?
+              plugin.destroy
+            end
+          end
+        end
+
+      end
+    end
+  end
+
   # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルを更新
   def update_for_outdated_version
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
         result, e, s = Open3.capture3("bundle exec bundle outdated")
-        gem_lines = []
         result.each_line do |line|
           if line.start_with?('  *')
             update_project_version(line)
@@ -114,11 +175,6 @@ class Project < ActiveRecord::Base
     return false
   end
 
-  # bundle outdatedの返却値を元にproject_versionを作成する
-  # def create_project_version(line)
-  #   project_versions.create(project_version_attributes(line))
-  # end
-
   def update_project_version(line)
     attribute = project_version_attributes(line)
     project_version = project_versions.where(name: attribute['name']).first
@@ -129,11 +185,8 @@ class Project < ActiveRecord::Base
     end
   end
 
-
   # bundle outdatedの返却値を元にproject_versionのattributesを作成する
   def project_version_attributes(line)
-    # plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-    # attr = { 'name' => plugin_name }
     attr = {}
     versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
     versions.each do |v|

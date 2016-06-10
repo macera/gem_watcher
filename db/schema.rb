@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160608080002) do
+ActiveRecord::Schema.define(version: 20160610021013) do
 
   create_table "entries", force: :cascade do |t|
     t.string   "title"
@@ -56,6 +56,21 @@ ActiveRecord::Schema.define(version: 20160608080002) do
     t.integer  "gitlab_id",        default: 0,  null: false
     t.string   "http_url_to_repo", default: "", null: false
     t.string   "ssh_url_to_repo",  default: "", null: false
+    t.string   "commit_id"
   end
+
+  create_table "security_entries", force: :cascade do |t|
+    t.string   "title"
+    t.datetime "published"
+    t.text     "content"
+    t.string   "url"
+    t.string   "author"
+    t.integer  "genre"
+    t.integer  "plugin_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "security_entries", ["plugin_id"], name: "index_security_entries_on_plugin_id"
 
 end

@@ -25,4 +25,5 @@ class ProjectVersion < ActiveRecord::Base
   #scope :production, -> { where(group_type: nil) }
   scope :newest_versions, -> { where.not(newest: nil) }
   scope :updated_versions, -> { where(newest: nil) }
+
 end

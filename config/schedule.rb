@@ -8,10 +8,15 @@
 # set :output, "/path/to/my/cron_log.log"
 #
 
-# feed収集
+
 every 8.hours do
+  # Gemfileが更新されているプロジェクトがあれば、ファイルを更新する
+  # bundle outdatedコマンドで更新可能なgem一覧を更新する
+  runner "Project.update_all"
+  # feed収集
   rake "feeds:generate"
 end
+
 #
 # every 4.days do
 #   runner "AnotherModel.prune_old_records"

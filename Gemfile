@@ -26,15 +26,24 @@ group :test, :development do
   gem 'sqlite3'
 end
 
-gem 'gitlab'
-
+# Settings
 gem 'config'
 
-gem 'feedjira'
+# Get GitLab info
+gem 'gitlab'
 
+# Get gem info
 gem 'gems'
 
+# Cron
 gem 'whenever', :require => false
+
+# Read RSS
+gem 'feedjira'
+
+# Scrape
+gem 'nokogiri'
+gem 'open_uri_redirections'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'

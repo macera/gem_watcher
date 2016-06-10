@@ -3,7 +3,7 @@ class FeedsController < ApplicationController
   require "feedjira"
 
   def index
-    @entries = Entry.all.order('published desc')
+    @entries = Entry.newest_plugins.order('published desc')
   end
 
   def show

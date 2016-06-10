@@ -1,6 +1,9 @@
-<h1><%= @plugin.name %> 詳細情報</h1>
+<h1><%= link_to @plugin.name, @plugin.source_code_uri %> 詳細情報</h1>
 
-<p>ホームページ: <%= link_to @plugin.name, @plugin.source_code_uri %></p>
+<h2>リリース情報(最新3件)</h2>
+<% @release_feeds.each do |entry| %>
+<p><%= link_to(truncate(entry.title, length: 20), entry.url, target: "_blank") %></p>
+<% end %>
 
 <h2>関連するプロジェクト一覧</h2>
 <% @plugin.project_versions.each do |version| %>
@@ -11,5 +14,27 @@
 <% end %>
 </p>
 
-<%= 'ここにこのgemのセキュリティ情報を表示する' %>
+<h2>RSSセキュリティ情報</h2>
+<ul>
+<%= 'セキュリティ情報は1件もありません。' if @securities.blank? %>
+<% @securities.each do |topic| %>
+  <li>
+    <%= link_to topic.title, topic.url, target: '_blank' %>
+    <%= topic.published %>
+  </li>
+<% end %>
+</ul>
+
+
+<h2>CHANGELOG(master)CVE情報</h2>
+<ul>
+<%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
+<% @cve_numbers.each do |num| %>
+  <li>
+    <%= num %>
+    <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{num}", target: '_blank' %>
+    <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{num}", target: '_blank' %>
+  </li>
+<% end %>
+</ul>
 
