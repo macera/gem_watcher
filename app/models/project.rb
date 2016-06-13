@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # == Schema Information
 #
 # Table name: projects
@@ -20,16 +21,22 @@ class Project < ActiveRecord::Base
   has_many :plugins, through: :project_versions
 
   # project plugin project_version 更新
-  def self.update_all
+  def self.update_projects
     Project.all.each do |project|
-      project.update_project_files         # create or destroy plugin, project_version
-      project.update_for_outdated_version  # update project_version
+      if project.updated_gemfile?
+        project.update_gemfile               # git pull
+        project.generate_gemfile_lock        # bundle install
+        project.update_plugins_and_versions  # bundle list
+        project.update_versions              # bundle outdated
+      end
     end
   end
 
   # GitLabで新しく追加されたプロジェクトを管理下に追加
-  def self.add_projects
-    Gitlab.projects.each do |project|
+  def self.add_projects(option={})
+    projects = Gitlab.projects
+    projects.sort_by! {|p| p.id } if option[:sort]
+    projects.each do |project|
       result = Project.find_by(gitlab_id: project.id)
       unless result
         model = Project.new(
@@ -39,38 +46,36 @@ class Project < ActiveRecord::Base
           ssh_url_to_repo:  project.ssh_url_to_repo,
           commit_id: Gitlab.commits(project.id).first.id
         )
-        model.gemfile_content = model.newest_gemfile if model.has_gemfile?
+        has_gemfile = model.has_gemfile_in_remote?
+        model.gemfile_content = model.newest_gemfile if has_gemfile
         model.save
         model.generate_project_files        # git clone
-        if model.has_gemfile?
+        if has_gemfile
           model.generate_gemfile_lock       # bundle install
           model.create_plugins_and_versions # bundle list
-          model.update_for_outdated_version # bundle outdated
+          model.update_versions             # bundle outdated
         end
       end
     end
   end
 
-  # Gemfileがあるプロジェクトか調べる
-  def has_gemfile?
-    exist_file?('Gemfile')
-  end
+  # Gemfileがあるプロジェクトか調べる(ローカル)
+  # def has_gemfile?
+  #   File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{name}/Gemfile")
+  # end
 
-  # Gemfile.lockがあるプロジェクトか調べる
-  def has_gemfile_lock?
-    exist_file?('Gemfile.lock')
+  # Gemfileがあるプロジェクトか調べる(リモート)
+  def has_gemfile_in_remote?
+    exist_file?('Gemfile')
   end
 
   # Gemfileの内容を返す
   def newest_gemfile
-    Gitlab.file_contents(gitlab_id, 'Gemfile').encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
+    Gitlab.file_contents(gitlab_id, 'Gemfile').force_encoding("UTF-8")
+    #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
   end
 
-  # Gemfileが変更されているか
-  def updated_gemfile?
-    has_gemfile? && gemfile_content != newest_gemfile
-  end
-
+    # git clone コマンド
   # projectのディレクトリを作成
   def generate_project_files
     path = "#{Rails.root}/#{Settings.path.working_directory}"
@@ -79,18 +84,16 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # git pull コマンド
   # リポジトリ更新(Gemfileを更新するため)
-  def update_project_files
-    if updated_gemfile?
-      Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-        system("git pull origin master")
-      end
-      self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
-      # project_versionとpluginテーブルを更新する
-      update_plugins_and_versions
+  def update_gemfile
+    Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
+      system("git pull origin master")
     end
+    self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
   end
 
+  # bundle install コマンド
   # Gemfile.lockを作成する(productionのみ取り出すため)
   def generate_gemfile_lock
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
@@ -100,6 +103,7 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # bundle list コマンド
   # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
   def create_plugins_and_versions
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
@@ -119,8 +123,9 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # bundle list コマンド
   # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
-  # 既存のgemが削除されたら、project_version削除
+  # 既存のgemが削除されたら、project_version削除(versionが1件もなくなればplugin削除)
   def update_plugins_and_versions
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
@@ -138,7 +143,10 @@ class Project < ActiveRecord::Base
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
             version = project_versions.joins(:plugin).where('plugins.name' => value[0]).first
-            unless version
+            if version
+              # installedのみ更新、他は初期化(update_versionsで取得し直す)
+              version.update(installed: value[1], newest: nil, requested: nil)
+            else
               plugin = Plugin.find_or_create_by(name: value[0]) do |p|
                 p.get_source_code_uri
               end
@@ -163,25 +171,40 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # bundle outdated コマンド
   # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルを更新
-  def update_for_outdated_version
+  def update_versions
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle exec bundle outdated")
+        result, e, s = Open3.capture3("bundle outdated")
         result.each_line do |line|
-          if line.start_with?('  *')
-            update_project_version(line)
+          next unless line.start_with?('  *')
+          plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
+          versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
+          attr = {}
+          versions.each do |v|
+            tmp = v.scan(/(\S+)\s(.+)/).flatten
+            state = tmp[0]
+            version = tmp[1]
+            attr.merge!({ state => version })
+          end
+
+          project_version = project_versions.joins(:plugin).where('plugins.name' => plugin_name).first
+          if project_version
+            # development, testのみのgemは除く
+            #return unless production?(line)
+            project_version.update(attr)
           end
         end
       end
     end
   end
 
-  # 指定のファイルを取得
-  # def get_file(file_path)
-  #   Gitlab.get_file(gitlab_id, file_path, 'master')
-  # end
+  # Gemfileが変更されているか(リモート)
+  def updated_gemfile?
+    has_gemfile_in_remote? && gemfile_content != newest_gemfile
+  end
 
   private
 
@@ -195,39 +218,16 @@ class Project < ActiveRecord::Base
     return false
   end
 
-  def update_project_version(line)
-    attribute = project_version_attributes(line)
-    project_version = project_versions.joins(:plugin).where('plugins.name' => attribute['name']).first
-    if project_version
-      # development, testのみのgemは除く
-      return unless production?(line)
-      attribute.delete('name')
-      project_version.update(attribute)
-    end
-  end
 
-  # bundle outdatedの返却値を元にproject_versionのattributesを作成する
-  def project_version_attributes(line)
-    plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-    attr = { 'name' => plugin_name }
-    versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
-    versions.each do |v|
-      tmp = v.scan(/(\S+)\s(.+)/).flatten
-      state = tmp[0]
-      version = tmp[1]
-      attr.merge!({ state => version })
-    end
-    attr
-  end
 
   # prodution環境で使うgemか調べる
-  def production?(line)
-    group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
-    if group_type == nil or
-      group_type == 'default' or
-      (group_type && group_type.include?('production'))
-      true
-    end
-  end
+  # def production?(line)
+  #   group_type = line.scan(/in\sgroups?\s"(\S+)"/).flatten[0]
+  #   if group_type == nil or
+  #     group_type == 'default' or
+  #     (group_type && group_type.include?('production'))
+  #     true
+  #   end
+  # end
 
 end

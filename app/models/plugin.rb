@@ -21,14 +21,22 @@ class Plugin < ActiveRecord::Base
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
+  # source_code_uriの値を代入する
   def get_source_code_uri
-    gem_info = Gems.info(name)
-    if gem_info.is_a?(Hash)
-      path = gem_info['source_code_uri'].presence || gem_info['homepage_uri']
-      # TODO: trailing slashを常に付ける方法が分からない
-      path += '/' if path && path.last != '/'
-      self.source_code_uri = path
-    end
+    self.source_code_uri = add_source_code_uri_to_trailing_slash
   end
+
+  private
+
+    # source_code_uriにtrailing slashを追加する
+    def add_source_code_uri_to_trailing_slash
+      gem_info = Gems.info(name)
+      if gem_info.is_a?(Hash)
+        path = gem_info['source_code_uri'].presence || gem_info['homepage_uri']
+        # TODO: trailing slashを常に付ける方法が分からない
+        path += '/' if path && path.last != '/'
+        path
+      end
+    end
 
 end

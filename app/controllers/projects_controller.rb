@@ -8,7 +8,7 @@ class ProjectsController < ApplicationController
   end
 
   def update_all
-    Project.update_all
+    Project.update_projects
     redirect_to action: :index
   end
 
