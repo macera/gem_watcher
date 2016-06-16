@@ -34,7 +34,7 @@ class Project < ActiveRecord::Base
 
   # GitLabで新しく追加されたプロジェクトを管理下に追加
   def self.add_projects(option={})
-    projects = Gitlab.projects
+    projects = gitlab_projects
     projects.sort_by! {|p| p.id } if option[:sort]
     projects.each do |project|
       result = Project.find_by(gitlab_id: project.id)
@@ -43,11 +43,11 @@ class Project < ActiveRecord::Base
           name: project.name,
           gitlab_id: project.id,
           http_url_to_repo: project.http_url_to_repo,
-          ssh_url_to_repo:  project.ssh_url_to_repo,
-          commit_id: Gitlab.commits(project.id).first.id
+          ssh_url_to_repo:  project.ssh_url_to_repo
         )
         has_gemfile = model.has_gemfile_in_remote?
         model.gemfile_content = model.newest_gemfile if has_gemfile
+        model.commit_id = model.gitlab_commit_id
         model.save
         model.generate_project_files        # git clone
         if has_gemfile
@@ -69,18 +69,12 @@ class Project < ActiveRecord::Base
     exist_file?('Gemfile')
   end
 
-  # Gemfileの内容を返す
-  def newest_gemfile
-    Gitlab.file_contents(gitlab_id, 'Gemfile').force_encoding("UTF-8")
-    #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
-  end
-
     # git clone コマンド
   # projectのディレクトリを作成
   def generate_project_files
     path = "#{Rails.root}/#{Settings.path.working_directory}"
     Dir.chdir(path) do
-      system("git clone #{ssh_url_to_repo}")
+      run("git clone #{ssh_url_to_repo}")
     end
   end
 
@@ -88,7 +82,7 @@ class Project < ActiveRecord::Base
   # リポジトリ更新(Gemfileを更新するため)
   def update_gemfile
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-      system("git pull origin master")
+      run("git pull origin master")
     end
     self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
   end
@@ -98,7 +92,7 @@ class Project < ActiveRecord::Base
   def generate_gemfile_lock
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle install --without development test")
+        run("bundle install --without development test")
       end
     end
   end
@@ -109,7 +103,7 @@ class Project < ActiveRecord::Base
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle list")
+        result = run("bundle list")
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
@@ -130,13 +124,7 @@ class Project < ActiveRecord::Base
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle list")
-        if e.present?
-          p "コマンドエラーが発生しました: #{name}"
-          p e
-          p result
-          next
-        end
+        result = run("bundle list")
         names = []
         # 新規gemがあれば追加する
         result.each_line do |line|
@@ -177,7 +165,7 @@ class Project < ActiveRecord::Base
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
-        result, e, s = Open3.capture3("bundle outdated")
+        result = run("bundle outdated")
         result.each_line do |line|
           next unless line.start_with?('  *')
           plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
@@ -206,11 +194,32 @@ class Project < ActiveRecord::Base
     has_gemfile_in_remote? && gemfile_content != newest_gemfile
   end
 
+  # API
+  # エラーログを取得する
+
+  # Gemfileの内容を返す
+  def newest_gemfile
+    Gitlab.file_contents(gitlab_id, 'Gemfile').force_encoding("UTF-8")
+    #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
+  rescue => e
+    logger.error "エラーが発生しました: #{e}"
+    # ひとまず自身のファイル内容を返す
+    return gemfile_content
+  end
+
   private
+
+  # gitlabのプロジェクト一覧を返す
+  def self.gitlab_projects
+    Gitlab.projects
+  rescue => e
+    logger.error "エラーが発生しました: #{e}"
+    return []
+  end
 
   # ファイルの存在チェック(トップディレクトリのみ)
   def exist_file?(file)
-    Gitlab.tree(gitlab_id).each do |obj|
+    root_dirs.each do |obj|
       if obj.name == file
         return true
       end
@@ -218,7 +227,27 @@ class Project < ActiveRecord::Base
     return false
   end
 
+  # commit idを返却する
+  def gitlab_commit_id
+    Gitlab.commits(gitlab_id).first.id
+  rescue => e
+    logger.error "エラーが発生しました: #{e}"
+    return nil
+  end
 
+  # ルートディレクトリ・ファイル一覧を返す API
+  def root_dirs
+    Gitlab.tree(gitlab_id)
+  rescue => e
+    logger.error "エラーが発生しました: #{e}"
+    return []
+  end
+
+  # コマンドを実行する
+  def run(command)
+    result, e, s = Open3.capture3(command)
+    return result
+  end
 
   # prodution環境で使うgemか調べる
   # def production?(line)
