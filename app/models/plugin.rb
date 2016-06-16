@@ -9,6 +9,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  source_code_uri :string
+#  homepage_uri    :string
 #
 
 class Plugin < ActiveRecord::Base
@@ -21,22 +22,23 @@ class Plugin < ActiveRecord::Base
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
-  # source_code_uriの値を代入する
-  def get_source_code_uri
-    self.source_code_uri = add_source_code_uri_to_trailing_slash
+  # Gemの情報を代入する
+  def get_gem_uri
+    gem_info = Gems.info(name)
+    if gem_info.is_a?(Hash)
+      path = gem_info['source_code_uri'].presence || gem_info['homepage_uri']
+      self.source_code_uri = add_trailing_slash(path)
+      self.homepage_uri = gem_info['homepage_uri']
+    end
   end
 
   private
 
-    # source_code_uriにtrailing slashを追加する
-    def add_source_code_uri_to_trailing_slash
-      gem_info = Gems.info(name)
-      if gem_info.is_a?(Hash)
-        path = gem_info['source_code_uri'].presence || gem_info['homepage_uri']
-        # TODO: trailing slashを常に付ける方法が分からない
-        path += '/' if path && path.last != '/'
-        path
-      end
+    # trailing slashを追加する
+    def add_trailing_slash(path)
+      # TODO: trailing slashを常に付ける方法が分からない
+      path += '/' if path && path.last != '/'
+      path
     end
 
 end

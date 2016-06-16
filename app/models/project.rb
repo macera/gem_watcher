@@ -108,7 +108,7 @@ class Project < ActiveRecord::Base
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
             plugin = Plugin.find_or_create_by(name: value[0]) do |p|
-              p.get_source_code_uri
+              p.get_gem_uri
             end
             project_versions.create(installed: value[1], plugin_id: plugin.id)
           end
@@ -136,7 +136,7 @@ class Project < ActiveRecord::Base
               version.update(installed: value[1], newest: nil, requested: nil)
             else
               plugin = Plugin.find_or_create_by(name: value[0]) do |p|
-                p.get_source_code_uri
+                p.get_gem_uri
               end
               project_versions.create(installed: value[1], plugin_id: plugin.id)
             end

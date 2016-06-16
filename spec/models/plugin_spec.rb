@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Plugin, type: :model do
 
-  describe 'プライベートメソッド' do
-    describe '#add_source_code_uri_to_trailing_slash' do
+  describe 'インスタンスメソッド' do
+    describe '#get_gem_uri' do
       before do
         allow(Gems).to receive(:info).with('bundler').and_return(
             {
@@ -27,22 +27,26 @@ RSpec.describe Plugin, type: :model do
             }
           )
       end
+
       context 'パスがあり、末尾が/の場合' do
         it 'そのままのパスを返すこと' do
           plugin = create(:plugin, name: 'bundler')
-          expect(plugin.send(:add_source_code_uri_to_trailing_slash)).to eq 'http://github.com/bundler/bundler/'
+          plugin.get_gem_uri
+          expect(plugin.source_code_uri).to eq 'http://github.com/bundler/bundler/'
         end
       end
       context 'パスがあり、末尾が/で終っていない場合' do
         it '末尾に/を追加したパスを返すこと' do
           plugin = create(:plugin, name: 'nokogiri')
-          expect(plugin.send(:add_source_code_uri_to_trailing_slash)).to eq 'https://github.com/sparklemotion/nokogiri/'
+          plugin.get_gem_uri
+          expect(plugin.source_code_uri).to eq 'https://github.com/sparklemotion/nokogiri/'
         end
       end
       context 'パスがない場合' do
         it 'nilを返すこと' do
           plugin = create(:plugin, name: 'wkhtmltopdf')
-          expect(plugin.send(:add_source_code_uri_to_trailing_slash)).to eq nil
+          plugin.get_gem_uri
+          expect(plugin.source_code_uri).to eq nil
         end
       end
     end

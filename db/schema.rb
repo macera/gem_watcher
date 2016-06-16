@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160610070619) do
+ActiveRecord::Schema.define(version: 20160616072932) do
 
   create_table "entries", force: :cascade do |t|
     t.string   "title"
@@ -33,6 +33,7 @@ ActiveRecord::Schema.define(version: 20160610070619) do
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
     t.string   "source_code_uri"
+    t.string   "homepage_uri"
   end
 
   create_table "project_versions", force: :cascade do |t|
