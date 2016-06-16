@@ -6,6 +6,8 @@
 <tr>
 <th>Name</th>
 <th>Project</th>
+<th>リリースFeed数</th>
+<th>セキュリティFeed数</th>
 <th></th>
 </tr>
 <tbody>
@@ -17,6 +19,8 @@
         <%= link_to project.name, project_path(project.id) %>
       <% end %>
     </td>
+    <td><%= plugin.entries.count %></td>
+    <td><%= plugin.security_entries.count %></td>
     <td><%= link_to '詳細', plugin_path(plugin.id) %></td>
   </tr>
 <% end %>
