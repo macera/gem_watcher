@@ -1,19 +1,18 @@
 class ProjectsController < ApplicationController
   before_action :set_project, only: :show
   def index
-    @projects = Project.all
+    @projects = Project.all.page(params[:page])
   end
 
   def show
-  end
-
-  def update_all
-    Project.update_projects
-    redirect_to action: :index
+    form_values = params[:plugin_form] ? params[:plugin_form] : { updated: '1' }
+    @form = PluginForm.new(form_values)
+    @plugins = @form.search_by_project(@project)
   end
 
   private
   def set_project
     @project = Project.find(params[:id])
   end
+
 end

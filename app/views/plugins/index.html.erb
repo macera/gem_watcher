@@ -1,28 +1,49 @@
-<h1>Gem一覧</h1>
+<div class="main ui container">
+  <div class="row">
+    <div class="column">
 
-<p>すべてのプロジェクトのgem一覧を表示</p>
+      <h1 class="ui header">Gem</h1>
 
-<table>
-<tr>
-<th>Name</th>
-<th>Project</th>
-<th>リリースFeed数</th>
-<th>セキュリティFeed数</th>
-<th></th>
-</tr>
-<tbody>
-<% @plugins.each do |plugin| %>
-  <tr>
-    <td><%= plugin.name %></td>
-    <td>
-      <% plugin.projects.each do |project| %>
-        <%= link_to project.name, project_path(project.id) %>
-      <% end %>
-    </td>
-    <td><%= plugin.entries.count %></td>
-    <td><%= plugin.security_entries.count %></td>
-    <td><%= link_to '詳細', plugin_path(plugin.id) %></td>
-  </tr>
-<% end %>
-</tbody>
-</table>
+      <table class="ui celled padded table">
+        <thead>
+          <tr>
+          <th>Gem</th>
+          <th>リリースFeed数</th>
+          <th>セキュリティFeed数</th>
+          <th>プロジェクト</th>
+          <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @plugins.each do |plugin| %>
+          <tr>
+            <td><%= plugin.name %></td>
+            <td class="right aligned">
+              <%= plugin.entries.count if plugin.entries.count > 0 %>
+            </td>
+            <td class="right aligned">
+              <%= plugin.security_entries.count if plugin.security_entries.count > 0 %>
+            </td>
+            <td>
+              <% plugin.projects.each do |project| %>
+                <%= link_to(project_path(project.id), class: 'item') do %>
+                  <div class="ui small label">
+                    <%= project.name %>
+                  </div>
+                <% end %>
+              <% end %>
+            </td>
+            <td><%= link_to '詳細', plugin_path(plugin.id), class: "ui button" %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+
+      <p>
+        <%= page_entries_info @plugins %>
+      </p>
+      <%= paginate @plugins %>
+
+    </div>
+  </div>
+</div>

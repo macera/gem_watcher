@@ -4,11 +4,7 @@ Rails.application.routes.draw do
 
   resources :feeds, only: [:index, :show]
 
-  resources :projects, only: [:index, :show] do
-    collection do
-      patch :update_all #不要になるかも
-    end
-  end
+  resources :projects, only: [:index, :show]
 
   resources :plugins, only: [:index, :show]
 

@@ -1,28 +1,48 @@
-<h1>Feeds#index</h1>
-<p>Find me in app/views/entrys/index.html.erb</p>
+<!--<div class="ui two column centered grid"> -->
+<div class="main ui container">
+  <div class="row">
+    <div class="column">
 
-<table>
-  <tr>
-  <th>feed名</th>
-  <th>リリースバージョン</th>
-  <th>更新日</th>
-  <th>使用中のプロジェクト</th>
-  <th></th>
-  </tr>
-  <tbody>
-  <% @entries.each do |entry| %>
-    <tr>
-      <td><%= entry.plugin.name %></td>
-      <td><%= link_to(truncate(entry.title, length: 20), entry.url, target: "_blank") %></td>
-      <td><%= entry.published %></td>
-      <td>
-        <% entry.plugin.projects.each do |project| %>
-          <%= link_to project.name, project_path(project.id) %>
+      <div class="ui relaxed divided list">
+        <% @entries.each do |entry| %>
+          <div class="item">
+            <i class="big github middle aligned icon"></i>
+            <div class="content">
+              <% title = "#{entry.plugin.name} / #{truncate(entry.title, length: 30)}" %>
+              <div class="header">
+                <%= link_to(title, entry.url, target: "_blank", class: "") %>
+              </div>
+              <div class="description">
+                <%= entry.published %>
+              </div>
+            </div>
+            <div class="right floated content">
+              <% entry.plugin.projects.limit(5).each do |project| %>
+                <%= link_to(project_path(project.id), class: 'item') do %>
+                  <div class="ui small label">
+                    <%= project.name %>
+                  </div>
+                <% end %>
+              <% end %>
+              <% if entry.plugin.projects.count > 5 %>
+                <%= link_to plugin_path(entry.plugin.id), class: 'item' do %>
+                  <div class="ui small label">
+                    ...more
+                  </div>
+                <% end %>
+              <% end %>
+              <%= link_to 'gem info', plugin_path(entry.plugin.id), class: "ui button" %>
+            </div>
+
+          </div>
         <% end %>
-      </td>
-      <td><%= link_to '詳細', plugin_path(entry.plugin.id) %></td>
-    </tr>
+      </div>
 
-  <% end %>
-  </tbody>
-</table>
+      <p>
+        <%= page_entries_info @entries %>
+      </p>
+      <%= paginate @entries %>
+
+    </div>
+  </div>
+</div>

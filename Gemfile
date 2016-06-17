@@ -26,6 +26,9 @@ group :test, :development do
   gem 'sqlite3'
 end
 
+gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
+gem 'kaminari'
+
 # Settings
 gem 'config'
 

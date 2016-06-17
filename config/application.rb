@@ -18,6 +18,7 @@ Bundler.require(*Rails.groups)
 module GemWatcher
   class Application < Rails::Application
 
+    config.autoload_paths += %W(#{config.root}/app/form)
     config.autoload_paths += %W(#{config.root}/lib)
     config.autoload_paths += %W(#{config.root}/lib/gem_watcher)
     # Settings in config/environments/* take precedence over those specified here.

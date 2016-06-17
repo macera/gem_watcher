@@ -11,5 +11,8 @@
  * file per style scope.
  *
  *= require_tree .
+ *= require semantic-ui
  *= require_self
  */
+
+body { padding-top: 70px; }
