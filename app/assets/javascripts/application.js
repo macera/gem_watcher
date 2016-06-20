@@ -15,17 +15,16 @@
 //= require semantic-ui
 //= require_tree .
 
-// $(document).ready(function(){
+$(document).ready(function(){
 
-//   $('#popup')
-//   .popup({
-//     inline: true
-//   });
+  $('#help_source_code_uri')
+  .popup({
+    inline: true
+  });
 
-//   $('#project-popup')
-//   .popup({
-//     inline: true
-//   });
+  $(".close.icon").click(function(){
+    $(this).parent().hide();
+  });
 
 
-// });
+});

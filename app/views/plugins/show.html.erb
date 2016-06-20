@@ -1,105 +1,99 @@
+<div class="ui grid">
 
-<div class="main ui container">
-
-  <div class="row">
-    <div class="column">
-
-      <h1><%= link_to @plugin.name, @plugin.source_code_uri %> 詳細情報</h1>
-
-        <div class="ui column stackable grid container">
-
-          <div class="six wide column">
-
-            <div class="ui segment">
-              <h2><i class="rss square icon"></i>最新のリリース情報</h2>
-              <div class="ui relaxed list">
-                <% @release_feeds.each do |entry| %>
-                  <div class="item">
-                    <i class="large github middle aligned icon"></i>
-                    <div class="content">
-                      <span class="header"><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank") %></span>
-                      <div class="description"><%= l entry.published %></div>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-
-            <div class="ui segment">
-              <h2><i class="folder open icon"></i>関連プロジェクト</h2>
-              <div class="ui relaxed list">
-                <% @plugin.project_versions.each do |version| %>
-                  <div class="item">
-                    <i class="large folder outline middle aligned icon"></i>
-                    <div class="content">
-                      <span class="header">
-                        <%= link_to version.project.name, project_path(version.project.id) %>
-                        <span style="<%= 'color:red;' if version.newest %>"><%= version.installed %></span>
-                      </span>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-
-          </div>
-
-          <div class="ten wide column">
-            <div class="ui segment">
-              <h2><i class="rss square icon"></i>セキュリティ情報</h2>
-              <%= 'セキュリティ情報は1件もありません。' if @securities.blank? %>
-              <div class="ui relaxed list">
-                <% @securities.each do |topic| %>
-                  <div class="item">
-                    <i class="large warning circle middle aligned icon"></i>
-                    <div class="content">
-                      <span class="header"><%= link_to topic.title, topic.url, target: '_blank' %></span>
-                      <div class="description"><%= l topic.published %></div>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-            <div class="ui segment">
-              <h2><i class="github square icon"></i>CHANGELOG(master) CVE情報</h2>
-              <%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
-              <div class="ui relaxed list">
-                <% @cve_numbers.each do |num| %>
-                  <div class="item">
-                    <i class="large warning circle middle aligned icon"></i>
-                    <div class="content">
-                      <div class="header">
-                        <%= num %>
-                        <span style="padding-left:10em;">
-                        <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{num}", target: '_blank', class: 'ui button small' %>
-                        <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{num}", target: '_blank', class: 'ui button small' %>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-
-          </div>
-
-
-        </div>
-
-
-
-        <div class="ui column stackable grid container">
-          <div class="column">
-
-          </div>
-        </div>
-
-
+  <div class="column">
+    <div class="ui message">
+      <h1><%= @plugin.name %> 詳細情報</h1>
+      <%= link_to @plugin.homepage_uri, class: "ui blue button", target: '_blank' do %>
+        公式ホームページ <i class="chevron right icon"></i>
+      <% end %>
+      <%= link_to edit_plugin_path(@plugin), class: "ui orange button" do %>
+        設定確認・変更 <i class="chevron right icon"></i>
+      <% end %>
     </div>
   </div>
 
+</div><!-- grid -->
 
-</div>
+<div class="ui grid">
+
+  <div class="six wide column">
+
+    <div class="ui segment">
+      <h2><i class="rss square icon"></i>最新のリリース情報</h2>
+      <div class="ui relaxed list">
+        <% @release_feeds.each do |entry| %>
+          <div class="item">
+            <i class="large github middle aligned icon"></i>
+            <div class="content">
+              <span class="header"><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank") %></span>
+              <div class="description"><%= l entry.published %></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+
+    <div class="ui segment">
+      <h2><i class="folder open icon"></i>関連プロジェクト</h2>
+      <div class="ui relaxed list">
+        <% @plugin.project_versions.each do |version| %>
+          <div class="item">
+            <i class="large folder outline middle aligned icon"></i>
+            <div class="content">
+              <span class="header">
+                <%= link_to version.project.name, project_path(version.project.id) %>
+                <span style="<%= 'color:red;' if version.newest %>"><%= version.installed %></span>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ten wide column">
+
+    <div class="ui segment">
+      <h2><i class="rss square icon"></i>セキュリティ情報</h2>
+      <%= 'セキュリティ情報は1件もありません。' if @securities.blank? %>
+      <div class="ui relaxed list">
+        <% @securities.each do |topic| %>
+          <div class="item">
+            <i class="large warning circle middle aligned icon"></i>
+            <div class="content">
+              <span class="header"><%= link_to topic.title, topic.url, target: '_blank' %></span>
+              <div class="description"><%= l topic.published %></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="ui segment">
+      <h2><i class="github square icon"></i>CHANGELOG(master) CVE情報</h2>
+      <%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
+      <div class="ui relaxed list">
+        <% @cve_numbers.each do |num| %>
+          <div class="item">
+            <i class="large warning circle middle aligned icon"></i>
+            <div class="content">
+              <div class="header">
+                <%= num %>
+                <span style="padding-left:10em;">
+                <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{num}", target: '_blank', class: 'ui button small' %>
+                <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{num}", target: '_blank', class: 'ui button small' %>
+                </span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+
+
+</div><!-- grid -->
+

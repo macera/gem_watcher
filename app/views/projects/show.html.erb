@@ -1,62 +1,66 @@
-<div class="main ui container">
 
+<div class="ui message">
   <h1><%= @project.name %> 詳細情報</h1>
+  <p><%= @project.description %></p>
+  <%= link_to @project.web_url, class: "ui blue button", target: '_blank' do %>
+    GitLabページへ <i class="chevron right icon"></i>
+  <% end %>
+</div>
 
-  <div class="ui form">
+<h2 class="ui header">Gem</h2>
+<div class="ui form">
 
-    <%= form_for @form, url: project_path(@project), method: :get do |f| %>
-      <div class="inline fields">
-        <div class="field">
-          <%= f.text_field :name, placeholder: "Gem Name" %>
-        </div>
-        <div class="field">
-          <div class="ui radio checkbox">
-            <%= f.radio_button :updated, 1 %>
-            <%= f.label :updated_1, '更新可能' %>
-          </div>
-        </div>
-        <div class="field">
-          <div class="ui radio checkbox">
-           <%= f.radio_button :updated, 2 %>
-            <%= f.label :updated_2, '更新済み' %>
-          </div>
-        </div>
-        <div class="field">
-          <div class="ui radio checkbox">
-            <%= f.radio_button :updated, 0 %>
-            <%= f.label :updated_0, 'すべて' %>
-          </div>
-        </div>
-
-        <div class="field">
-          <%= f.submit '検索', class: 'ui olive button' %>
-          <%= link_to 'クリア', project_path(@project), class: 'ui button' %>
+  <%= form_for @form, url: project_path(@project), method: :get do |f| %>
+    <div class="inline fields">
+      <div class="field">
+        <%= f.text_field :name, placeholder: "Gem Name" %>
+      </div>
+      <div class="field">
+        <div class="ui radio checkbox">
+          <%= f.radio_button :updated, 1 %>
+          <%= f.label :updated_1, '更新可能' %>
         </div>
       </div>
-    <% end %>
-  </div>
+      <div class="field">
+        <div class="ui radio checkbox">
+         <%= f.radio_button :updated, 2 %>
+          <%= f.label :updated_2, '更新済み' %>
+        </div>
+      </div>
+      <div class="field">
+        <div class="ui radio checkbox">
+          <%= f.radio_button :updated, 0 %>
+          <%= f.label :updated_0, 'すべて' %>
+        </div>
+      </div>
 
-  <table class="ui celled table">
-    <thead>
-      <tr>
-        <th>Gem</th>
-        <th>最新のバージョン</th>
-        <th>現在のバージョン</th>
-        <th>固定</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @plugins.each do |version| %>
-        <tr>
-          <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
-          <td><%= version.newest %></td>
-          <td><%= version.installed %></td>
-          <td><%= version.requested %></td>
-          <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-
+      <div class="field">
+        <%= f.submit '検索', class: 'ui olive button' %>
+        <%= link_to 'クリア', project_path(@project), class: 'ui button' %>
+      </div>
+    </div>
+  <% end %>
 </div>
+
+<table class="ui celled table">
+  <thead>
+    <tr>
+      <th>Gem</th>
+      <th>最新のバージョン</th>
+      <th>現在のバージョン</th>
+      <th>固定</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @plugins.each do |version| %>
+      <tr>
+        <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
+        <td><%= version.newest %></td>
+        <td><%= version.installed %></td>
+        <td><%= version.requested %></td>
+        <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
