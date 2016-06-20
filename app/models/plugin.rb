@@ -18,6 +18,15 @@ class Plugin < ActiveRecord::Base
   has_many :entries, dependent: :destroy
   has_many :security_entries, dependent: :destroy
 
+  validates :source_code_uri, presence: true
+  validates :source_code_uri, length: { maximum: 200 }, allow_blank: true
+  validates :source_code_uri, format: {
+                                with: /\A#{URI::regexp(%w(http https))}\/\z/,
+                                message: "はURL形式で入力して下さい。末尾は/で終了する必要があります。"
+                              },
+                              allow_blank: true,
+                              on: :update
+
   # before_create :get_source_code_uri
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
@@ -41,7 +50,7 @@ class Plugin < ActiveRecord::Base
     gem_info = Gems.info(name)
     if gem_info.is_a?(Hash)
       path = gem_info['source_code_uri'].presence || gem_info['homepage_uri']
-      self.source_code_uri = add_trailing_slash(path)
+      self.source_code_uri = add_trailing_slash(path) if path
       self.homepage_uri = gem_info['homepage_uri']
     end
   end

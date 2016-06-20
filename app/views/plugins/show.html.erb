@@ -6,9 +6,6 @@
       <%= link_to @plugin.homepage_uri, class: "ui blue button", target: '_blank' do %>
         公式ホームページ <i class="chevron right icon"></i>
       <% end %>
-      <%= link_to edit_plugin_path(@plugin), class: "ui orange button" do %>
-        設定確認・変更 <i class="chevron right icon"></i>
-      <% end %>
     </div>
   </div>
 
@@ -96,4 +93,12 @@
 
 
 </div><!-- grid -->
+
+<div class="ui grid">
+  <div class="column">
+    <%= link_to edit_plugin_path(@plugin), class: "ui orange button right floated" do %>
+      設定確認・変更 <i class="chevron right icon"></i>
+    <% end %>
+  </div>
+</div>
 

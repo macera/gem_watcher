@@ -210,3 +210,8 @@ ja:
           one: "Total <b>%{count}</b>"
           other: "Total <b>%{count}</b>"
           zero: "レコードが見つかりませんでした"
+
+    submit:
+      create: "登録"
+      update: "変更"
+      submit: "保存"

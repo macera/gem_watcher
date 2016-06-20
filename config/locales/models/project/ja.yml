@@ -5,4 +5,8 @@ ja:
 
     attributes:
       project:
-        name: プロジェクト名
+        name:              プロジェクト名
+        description:       プロジェクト説明
+        web_url:           WEBサイトURL
+        http_url_to_repo:  リポジトリURL(HTTP)
+        ssh_url_to_repo:   リポジトリURL(SSH)

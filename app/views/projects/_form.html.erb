@@ -1,0 +1,50 @@
+<% if @project.errors.any? %>
+  <div class="ui error message">
+    <i class="close icon"></i>
+    <div class="header">
+      不正な入力があります。
+    </div>
+    <ul class="list">
+      <% @project.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
+<div class="ui form">
+  <%= form_for @project do |f| %>
+
+    <div class="field">
+      <label>プロジェクト名</label>
+      <%= f.text_field :name, placeholder: '', class: '' %>
+    </div>
+
+    <div class="field">
+      <label>プロジェクト説明</label>
+      <%= f.text_area :description, placeholder: '', class: '' %>
+    </div>
+
+    <div class="field">
+      <label>WEBサイトURL</label>
+      <%= f.text_field :web_url, placeholder: 'http://example.com/project', class: '' %>
+    </div>
+    <div class="field">
+      <label>リポジトリURL(HTTP)</label>
+      <%= f.text_field :http_url_to_repo, placeholder: 'http://example.com/project.git', class: '' %>
+    </div>
+    <div class="field">
+      <label>リポジトリURL(SSH)</label>
+      <%= f.text_field :ssh_url_to_repo, placeholder: 'git@example.com/project.git', class: '' %>
+    </div>
+    <div class="field">
+      <% if @project.persisted? %>
+        <%= link_to project_path(@project), class: "ui button" do %>
+          <i class="chevron left icon"></i> 詳細画面に戻る
+        <% end %>
+      <% end %>
+      <%= f.submit class: "ui orange button" %>
+    </div>
+
+  <% end %>
+</div>

@@ -4,5 +4,6 @@ ja:
       plugin: 'Gem'
 
     attributes:
-      project:
+      plugin:
         name: プロジェクト名
+        source_code_uri: ソースコードURL

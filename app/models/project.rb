@@ -12,6 +12,8 @@
 #  ssh_url_to_repo  :string           default(""), not null
 #  commit_id        :string
 #  gemfile_content  :text
+#  web_url          :string
+#  description      :text
 #
 
 require "open3"
@@ -19,6 +21,27 @@ require "open3"
 class Project < ActiveRecord::Base
   has_many :project_versions, dependent: :destroy
   has_many :plugins, through: :project_versions
+
+  validates :name, presence: true
+  validates :name, length: { maximum: 50 }, allow_blank: true
+  validates :name, format: { with: /\A[a-z0-9_-]+\z/i }, allow_blank: true
+
+  validates :description, presence: true
+  validates :description, length: { maximum: 500 }, allow_blank: true
+
+  validates :web_url, presence: true
+  validates :web_url, length: { maximum: 200 }, allow_blank: true
+  validates :web_url, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
+
+  validates :http_url_to_repo, presence: true
+  validates :http_url_to_repo, length: { maximum: 200 }, allow_blank: true
+  validates :http_url_to_repo, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
+
+  # TODO: ちゃんとした正規表現に修正したい
+  validates :ssh_url_to_repo, presence: true
+  validates :ssh_url_to_repo, length: { maximum: 200 }, allow_blank: true
+  validates :ssh_url_to_repo, format: /\Agit\@\S+\/\S+\.git\z/, allow_blank: true
+
 
   # project plugin project_version 更新
   def self.update_projects
@@ -43,7 +66,9 @@ class Project < ActiveRecord::Base
           name: project.name,
           gitlab_id: project.id,
           http_url_to_repo: project.http_url_to_repo,
-          ssh_url_to_repo:  project.ssh_url_to_repo
+          ssh_url_to_repo:  project.ssh_url_to_repo,
+          web_url:          project.web_url,
+          description:      project.description
         )
         has_gemfile = model.has_gemfile_in_remote?
         model.gemfile_content = model.newest_gemfile if has_gemfile
@@ -221,6 +246,14 @@ class Project < ActiveRecord::Base
     return gemfile_content
   end
 
+  # commit idを返却する
+  def gitlab_commit_id
+    Gitlab.commits(gitlab_id).first.id
+  rescue => e
+    logger.error "エラーが発生しました: #{e}"
+    return nil
+  end
+
   private
 
   # gitlabのプロジェクト一覧を返す
@@ -239,14 +272,6 @@ class Project < ActiveRecord::Base
       end
     end
     return false
-  end
-
-  # commit idを返却する
-  def gitlab_commit_id
-    Gitlab.commits(gitlab_id).first.id
-  rescue => e
-    logger.error "エラーが発生しました: #{e}"
-    return nil
   end
 
   # ルートディレクトリ・ファイル一覧を返す API
