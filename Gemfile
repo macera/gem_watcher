@@ -26,8 +26,14 @@ group :test, :development do
   gem 'sqlite3'
 end
 
+# css framework
 gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
+
+# paging
 gem 'kaminari'
+
+# search
+gem 'ransack'
 
 # Settings
 gem 'config'

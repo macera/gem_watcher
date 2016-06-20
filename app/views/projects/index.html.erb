@@ -2,9 +2,21 @@
   <div class="row">
     <div class="column">
 
-      <h1 class="ui header">プロジェクト</h1>
+      <h2 class="ui header">プロジェクト</h2>
 
-      <table class="ui celled padded table">
+      <div class="ui form">
+        <%= search_form_for @search, url: projects_path do |f| %>
+          <div class="inline fields">
+            <div class="field">
+              <%= f.text_field :name_start, placeholder: 'プロジェクト名', class: '' %>
+            </div>
+            <%= f.submit '検索', class: "ui olive button" %>
+            <%= link_to 'クリア', projects_path, class: 'ui button' %>
+          </div>
+        <% end %>
+      </div>
+
+      <table class="ui celled table">
         <thead>
           <tr>
           <th>プロジェクト名</th>
@@ -23,7 +35,9 @@
           <td class="right aligned">
             <%= project.project_versions.newest_versions.count %>
           </td>
-          <td><%= link_to '詳細', project_path(project.id), class: "ui button" %></td>
+          <td class="center aligned">
+            <%= link_to '詳細', project_path(project.id), class: "ui small button" %>
+          </td>
         </tr>
       <% end %>
       </tbody>

@@ -3,20 +3,49 @@
   <div class="row">
     <div class="column">
 
-      <div class="ui relaxed divided list">
-        <% @entries.each do |entry| %>
-          <div class="item">
-            <i class="big github middle aligned icon"></i>
-            <div class="content">
-              <% title = "#{entry.plugin.name} / #{truncate(entry.title, length: 30)}" %>
-              <div class="header">
-                <%= link_to(title, entry.url, target: "_blank", class: "") %>
-              </div>
-              <div class="description">
-                <%= entry.published %>
-              </div>
+      <h2 class="ui header">
+        Gem Release Feeds
+        <div class="sub header">それぞれのGemの最新GitHubリリースフィードを表示しています。</div>
+      </div>
+      <br />
+
+      <div class="ui form">
+        <%= search_form_for @search, url: feeds_path do |f| %>
+          <div class="inline fields">
+            <div class="field">
+              <%= f.text_field :plugin_name_start, placeholder: 'Gem Name', class: '' %>
             </div>
-            <div class="right floated content">
+            <div class="field">
+              <%= f.select :plugin_projects_id_eq, Project.all.map{|p| [p.name, p.id]}, { include_blank: "すべてのプロジェクト" }, { class: 'ui dropdown' } %>
+            </div>
+            <%= f.submit '検索', class: "ui olive button" %>
+            <%= link_to 'クリア', feeds_path, class: 'ui button' %>
+          </div>
+        <% end %>
+      </div>
+
+      <table class="ui very basic table compact">
+        <thead>
+          <tr>
+          <th>Gem</th>
+          <th>
+            <i class="large github aligned icon"></i>リリースタイトル(Version)
+          </th>
+          <th>更新日時</th>
+          <th>
+            <i class="large folder outline aligned icon"></i>プロジェクト
+            </span>
+          </th>
+          <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @entries.each do |entry| %>
+          <tr>
+            <td><%= entry.plugin.name %></td>
+            <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+            <td><%= l entry.published %></td>
+            <td>
               <% entry.plugin.projects.limit(5).each do |project| %>
                 <%= link_to(project_path(project.id), class: 'item') do %>
                   <div class="ui small label">
@@ -31,12 +60,14 @@
                   </div>
                 <% end %>
               <% end %>
-              <%= link_to 'gem info', plugin_path(entry.plugin.id), class: "ui button" %>
-            </div>
-
-          </div>
+            </td>
+            <td>
+              <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
+            </td>
+          </tr>
         <% end %>
-      </div>
+        </tbody>
+      </table>
 
       <p>
         <%= page_entries_info @entries %>

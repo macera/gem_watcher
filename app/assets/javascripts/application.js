@@ -12,5 +12,20 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require turbolinks
+//= require semantic-ui
 //= require_tree .
+
+// $(document).ready(function(){
+
+//   $('#popup')
+//   .popup({
+//     inline: true
+//   });
+
+//   $('#project-popup')
+//   .popup({
+//     inline: true
+//   });
+
+
+// });

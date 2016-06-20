@@ -1,9 +1,9 @@
 
 class FeedsController < ApplicationController
-  require "feedjira"
 
   def index
-    @entries = Entry.newest_plugins.order('published desc').page(params[:page])
+    @search = Entry.newest_plugins.ransack(params[:q])
+    @entries = @search.result.order('entries.published desc').page(params[:page])
   end
 
   def show

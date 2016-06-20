@@ -2,9 +2,24 @@
   <div class="row">
     <div class="column">
 
-      <h1 class="ui header">Gem</h1>
+      <h2 class="ui header">Gem</h2>
 
-      <table class="ui celled padded table">
+      <div class="ui form">
+        <%= search_form_for @search, url: plugins_path do |f| %>
+          <div class="inline fields">
+            <div class="field">
+              <%= f.text_field :name_start, placeholder: 'Gem Name', class: '' %>
+            </div>
+            <div class="field">
+              <%= f.select :projects_id_eq, Project.all.map{|p| [p.name, p.id]}, { include_blank: "すべてのプロジェクト" }, { class: 'ui dropdown' } %>
+            </div>
+            <%= f.submit '検索', class: "ui olive button" %>
+            <%= link_to 'クリア', plugins_path, class: 'ui button' %>
+          </div>
+        <% end %>
+      </div>
+
+      <table class="ui celled table">
         <thead>
           <tr>
           <th>Gem</th>

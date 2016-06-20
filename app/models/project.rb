@@ -59,6 +59,20 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # 許可するカラムの名前をオーバーライドする
+  def self.ransackable_attributes(auth_object = nil)
+    %w(id name)
+  end
+
+  # 許可する関連の配列をオーバーライドする
+  def self.ransackable_associations(auth_object = nil)
+    reflect_on_all_associations.map { |a| a.name.to_s }
+  end
+
+  def self.ransackable_scopes(auth_object = nil)
+    %i[]
+  end
+
   # Gemfileがあるプロジェクトか調べる(ローカル)
   # def has_gemfile?
   #   File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{name}/Gemfile")

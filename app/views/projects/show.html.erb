@@ -3,12 +3,11 @@
   <h1><%= @project.name %> 詳細情報</h1>
 
   <div class="ui form">
+
     <%= form_for @form, url: project_path(@project), method: :get do |f| %>
       <div class="inline fields">
         <div class="field">
-          <div class="ui radio checkbox">
-            <%= f.text_field :name, placeholder: "Gem Name" %>
-          </div>
+          <%= f.text_field :name, placeholder: "Gem Name" %>
         </div>
         <div class="field">
           <div class="ui radio checkbox">
@@ -37,7 +36,7 @@
     <% end %>
   </div>
 
-  <table class="ui celled padded table">
+  <table class="ui celled table">
     <thead>
       <tr>
         <th>Gem</th>
@@ -54,7 +53,7 @@
           <td><%= version.newest %></td>
           <td><%= version.installed %></td>
           <td><%= version.requested %></td>
-          <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui button" %></td>
+          <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
         </tr>
       <% end %>
     </tbody>

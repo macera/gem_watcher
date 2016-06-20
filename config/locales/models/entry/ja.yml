@@ -1,0 +1,8 @@
+ja:
+  activerecord:
+    models:
+      entry: Feed
+
+    attributes:
+      entry:
+        title: リリースタイトル

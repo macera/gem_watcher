@@ -4,16 +4,14 @@ class PluginsController < ApplicationController
   before_action :set_plugin, only: :show
 
   def index
-    # @form = PluginForm.new(params[:plugin_form])
-    # @plugins = @form.search
-
-    @plugins = Plugin.all.page(params[:page])
+    @search = Plugin.ransack(params[:q])
+    @plugins = @search.result.page(params[:page])
   end
 
   def show
     uri = URI.join(@plugin.source_code_uri, 'blob/master/CHANGELOG.md')
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @cve_numbers = cve_numbers(uri.to_s)
+    @cve_numbers = []#cve_numbers(uri.to_s)
     @securities = @plugin.security_entries
   end
 

@@ -1,0 +1,8 @@
+ja:
+  activerecord:
+    models:
+      plugin: 'Gem'
+
+    attributes:
+      project:
+        name: プロジェクト名

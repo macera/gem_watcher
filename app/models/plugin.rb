@@ -22,6 +22,20 @@ class Plugin < ActiveRecord::Base
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
+  # 許可するカラムの名前をオーバーライドする
+  def self.ransackable_attributes(auth_object = nil)
+    %w(name)
+  end
+
+  # 許可する関連の配列をオーバーライドする
+  # def self.ransackable_associations(auth_object = nil)
+  #   reflect_on_all_associations.map { |a| a.name.to_s }
+  # end
+
+  # def self.ransackable_scopes(auth_object = nil)
+  #   %i[]
+  # end
+
   # Gemの情報を代入する
   def get_gem_uri
     gem_info = Gems.info(name)
