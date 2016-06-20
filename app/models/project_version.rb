@@ -26,4 +26,8 @@ class ProjectVersion < ActiveRecord::Base
   scope :newest_versions, -> { where.not(newest: nil) }
   scope :updated_versions, -> { where(newest: nil) }
 
+
+  # def self.ransackable_scopes(auth_object = nil)
+  # end
+
 end

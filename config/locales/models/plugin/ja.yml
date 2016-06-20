@@ -1,0 +1,9 @@
+ja:
+  activerecord:
+    models:
+      plugin: 'Gem'
+
+    attributes:
+      plugin:
+        name: プロジェクト名
+        source_code_uri: ソースコードURL

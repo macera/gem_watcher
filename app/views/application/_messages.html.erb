@@ -1,0 +1,13 @@
+<% flash.each do |key, message| %>
+
+  <% klass = 'negative' if key == 'alert' %>
+  <% klass = 'success'  if key == 'notice' %>
+
+  <div class="ui message <%= klass %>">
+    <i class="close icon"></i>
+    <div class="header">
+      <%= message %>
+    </div>
+  </div>
+
+<% end %>

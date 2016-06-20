@@ -1,0 +1,44 @@
+<h2 class="ui header">
+  <%= @plugin.name %> 設定情報の確認・変更
+  <div class="sub header">ソースコードURLを手動で登録できます。</div>
+</div>
+</h2>
+<br />
+
+<% if @plugin.errors.any? %>
+    <div class="ui error message">
+      <i class="close icon"></i>
+      <div class="header">
+        不正な入力があります。
+      </div>
+      <ul class="list">
+        <% @plugin.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+<div class="ui form">
+
+  <%= form_for @plugin do |f| %>
+
+    <div class="field">
+      <label>
+        ソースコードURL
+        <i class="help large circle icon blue" id="help_source_code_uri" data-content="このGemのリリースフィードやCHANGELOG情報を取得するのに必要なURLです。"></i>
+      </label>
+      <%= f.text_field :source_code_uri, placeholder: 'http://github.com/example/example/', class: '' %>
+    </div>
+
+    <div class="field">
+      <%= link_to plugin_path(@plugin), class: "ui button" do %>
+        <i class="chevron left icon"></i> 詳細画面に戻る
+      <% end %>
+      <%= f.submit class: "ui orange button" %>
+    </div>
+
+      <%#= link_to 'クリア', projects_path, class: 'ui button' %>
+
+  <% end %>
+</div>

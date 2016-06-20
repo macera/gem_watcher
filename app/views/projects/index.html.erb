@@ -1,23 +1,47 @@
-<h1>プロジェクト一覧</h1>
+<h2 class="ui header">プロジェクト</h2>
 
-<%= form_tag(update_all_projects_path, method: :patch) do %>
-  <%= submit_tag '更新', data: { disable_with: "しばらくお待ち下さい" } %>
-<% end %>
-<table>
-<tr>
-<th>Name</th>
-<th>GitLab ID</th>
-<th>新しいバージョンが入手可能なgemの数</th>
-<th></th>
-</tr>
+<div class="ui form">
+  <%= search_form_for @search, url: projects_path do |f| %>
+    <div class="inline fields">
+      <div class="field">
+        <%= f.text_field :name_start, placeholder: 'プロジェクト名', class: '' %>
+      </div>
+      <%= f.submit '検索', class: "ui olive button" %>
+      <%= link_to 'クリア', projects_path, class: 'ui button' %>
+    </div>
+  <% end %>
+</div>
+
+<table class="ui celled table">
+  <thead>
+    <tr>
+    <th>プロジェクト名</th>
+    <th>gem数</th>
+    <th>更新可能なgem数</th>
+    <th></th>
+    </tr>
+  </thead>
 <tbody>
 <% @projects.each do |project| %>
   <tr>
     <td><%= project.name %></td>
-    <td><%= project.gitlab_id %></td>
-    <td><%= project.project_versions.newest_versions.count %></td>
-    <td><%= link_to '詳細', project_path(project.id) %></td>
+    <td class="right aligned">
+      <%= project.project_versions.count %>
+    </td>
+    <td class="right aligned">
+      <%= project.project_versions.newest_versions.count %>
+    </td>
+    <td class="center aligned">
+      <%= link_to '詳細', project_path(project.id), class: "ui small button" %>
+    </td>
   </tr>
 <% end %>
 </tbody>
 </table>
+
+<p>
+  <%= page_entries_info @projects %>
+</p>
+<%= paginate @projects %>
+
+<%= link_to 'プロジェクトの登録', new_project_path, class: 'ui primary button right floated' %>

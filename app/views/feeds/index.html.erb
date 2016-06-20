@@ -1,28 +1,79 @@
-<h1>Feeds#index</h1>
-<p>Find me in app/views/entrys/index.html.erb</p>
+<!--<div class="ui two column centered grid"> -->
+<div class="main ui container">
+  <div class="row">
+    <div class="column">
 
-<table>
-  <tr>
-  <th>feed名</th>
-  <th>リリースバージョン</th>
-  <th>更新日</th>
-  <th>使用中のプロジェクト</th>
-  <th></th>
-  </tr>
-  <tbody>
-  <% @entries.each do |entry| %>
-    <tr>
-      <td><%= entry.plugin.name %></td>
-      <td><%= link_to(truncate(entry.title, length: 20), entry.url, target: "_blank") %></td>
-      <td><%= entry.published %></td>
-      <td>
-        <% entry.plugin.projects.each do |project| %>
-          <%= link_to project.name, project_path(project.id) %>
+      <h2 class="ui header">
+        Gem Release Feeds
+        <div class="sub header">それぞれのGemの最新GitHubリリースフィードを表示しています。</div>
+      </h2>
+
+
+      <div class="ui form">
+        <%= search_form_for @search, url: feeds_path do |f| %>
+          <div class="inline fields">
+            <div class="field">
+              <%= f.text_field :plugin_name_start, placeholder: 'Gem Name', class: '' %>
+            </div>
+            <div class="field">
+              <%= f.select :plugin_projects_id_eq, Project.all.map{|p| [p.name, p.id]}, { include_blank: "すべてのプロジェクト" }, { class: 'ui dropdown' } %>
+            </div>
+            <%= f.submit '検索', class: "ui olive button" %>
+            <%= link_to 'クリア', feeds_path, class: 'ui button' %>
+          </div>
         <% end %>
-      </td>
-      <td><%= link_to '詳細', plugin_path(entry.plugin.id) %></td>
-    </tr>
+      </div>
 
-  <% end %>
-  </tbody>
-</table>
+      <table class="ui very basic table compact">
+        <thead>
+          <tr>
+          <th>Gem</th>
+          <th>
+            <i class="large github aligned icon"></i>リリースタイトル(Version)
+          </th>
+          <th>更新日時</th>
+          <th>
+            <i class="large folder outline aligned icon"></i>プロジェクト
+            </span>
+          </th>
+          <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <% @entries.each do |entry| %>
+          <tr>
+            <td><%= entry.plugin.name %></td>
+            <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+            <td><%= l entry.published %></td>
+            <td>
+              <% entry.plugin.projects.limit(5).each do |project| %>
+                <%= link_to(project_path(project.id), class: 'item') do %>
+                  <div class="ui small label">
+                    <%= project.name %>
+                  </div>
+                <% end %>
+              <% end %>
+              <% if entry.plugin.projects.count > 5 %>
+                <%= link_to plugin_path(entry.plugin.id), class: 'item' do %>
+                  <div class="ui small label">
+                    ...more
+                  </div>
+                <% end %>
+              <% end %>
+            </td>
+            <td>
+              <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+
+      <p>
+        <%= page_entries_info @entries %>
+      </p>
+      <%= paginate @entries %>
+
+    </div>
+  </div>
+</div>
