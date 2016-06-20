@@ -9,8 +9,30 @@ namespace :security_feed do
       next if plugin.name == 'rails'
       keyword = plugin.name
       keyword_title = keyword.titleize # web-console => Web Console
+      # actionpack => Action Pack
+      tmp_action = keyword.scan(/(action)(\S+)/)
+      keyword_action = nil
+      if tmp_action.present?
+        keyword_action = "#{tmp_action.flatten[0]} #{tmp_action.flatten[1]}".titleize
+      end
+      # activerecord => Active Record
+      tmp_active = keyword.scan(/(active)(\S+)/)
+      keyword_active = nil
+      if tmp_active.present?
+        keyword_active = "#{tmp_active.flatten[0]} #{tmp_active.flatten[1]}".titleize
+      end
+
       content.entries.each do |entry|
-        if entry.title =~ /#{keyword}|#{keyword_title}/
+        result = nil
+        if keyword_action
+          result = entry.title =~ /#{keyword}|#{keyword_title}|#{keyword_action}/
+        elsif keyword_active
+          result = entry.title =~ /#{keyword}|#{keyword_title}|#{keyword_active}/
+        else
+          result = entry.title =~ /#{keyword}|#{keyword_title}/
+        end
+
+        if result
           local_entry = plugin.security_entries.where(title: entry.title).first_or_initialize
 
           local_entry.update_attributes(
