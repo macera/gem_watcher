@@ -1,2 +1,10 @@
-<h2 class="ui header"><%= @project.name %> プロジェクト設定情報の確認・変更</h2>
+<h2 class="ui header">
+  <%= @project.name %> プロジェクト設定情報の確認・変更
+  <div class="sub header">
+    プロジェクトを手動で登録・編集できます。Gemfileがないプロジェクト等。
+    ただし、GitLabと同期していないので注意。
+  </div>
+</h2>
+<br />
+
 <%= render 'form' %>
