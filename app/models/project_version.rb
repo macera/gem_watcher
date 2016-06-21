@@ -38,7 +38,7 @@ class ProjectVersion < ActiveRecord::Base
   end
 
   after_initialize  :set_plugin_name
-  before_validation :with_plugin_info, unless: :plugin
+  after_validation :with_plugin_info, unless: :plugin
   after_destroy     :destroy_with_plugin_name
 
   #scope :production, -> { where(group_type: nil) }
@@ -46,6 +46,12 @@ class ProjectVersion < ActiveRecord::Base
   scope :updated_versions, -> { where(newest: nil) }
 
   private
+
+    def valid_plugin_format?
+      plugin_name && plugin_name =~ /\A[a-z0-9_-]+\z/i
+    end
+
+  # callback
 
     # 画面表示用の値をセットする
     def set_plugin_name
@@ -75,14 +81,6 @@ class ProjectVersion < ActiveRecord::Base
       end
     end
 
-    def exist_rubygem
-      return unless valid_plugin_format?
-      gem_info = Gems.info(plugin_name)
-      unless gem_info.is_a?(Hash)
-        errors.add(:plugin_name, :not_exist_rubygem)
-      end
-    end
-
     # newestを取得する
     def newest_version
       return unless valid_plugin_format?
@@ -94,10 +92,16 @@ class ProjectVersion < ActiveRecord::Base
       end
     end
 
-    def valid_plugin_format?
-      plugin_name && plugin_name =~ /\A[a-z0-9_-]+\z/i
-    end
+  # バリデーション
 
+    # gem存在チェック
+    def exist_rubygem
+      return unless valid_plugin_format?
+      gem_info = Gems.info(plugin_name)
+      unless gem_info.is_a?(Hash)
+        errors.add(:plugin_name, :not_exist_rubygem)
+      end
+    end
 
   # def self.ransackable_scopes(auth_object = nil)
   # end
