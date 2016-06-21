@@ -157,6 +157,7 @@ RSpec.describe Project, type: :model do
             @config_version2 = create(:version, installed: '1.2.1', newest: '1.2.1', plugin: @config_plugin, project: @project2)
           end
           it 'project_versionが削除されること' do
+
             expect{ @project1.update_plugins_and_versions }.to change{ ProjectVersion.count }.by(-1)
           end
           it 'pluginは削除されないこと' do

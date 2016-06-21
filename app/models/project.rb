@@ -19,14 +19,17 @@
 require "open3"
 
 class Project < ActiveRecord::Base
-  has_many :project_versions, dependent: :destroy
   has_many :plugins, through: :project_versions
+
+  has_many :project_versions, dependent: :destroy
+
+  #validates_associated :project_versions
+
 
   validates :name, presence: true
   validates :name, length: { maximum: 50 }, allow_blank: true
   validates :name, format: { with: /\A[a-z0-9_-]+\z/i }, allow_blank: true
 
-  validates :description, presence: true
   validates :description, length: { maximum: 500 }, allow_blank: true
 
   validates :web_url, presence: true
@@ -42,6 +45,8 @@ class Project < ActiveRecord::Base
   validates :ssh_url_to_repo, length: { maximum: 200 }, allow_blank: true
   validates :ssh_url_to_repo, format: /\Agit\@\S+\/\S+\.git\z/, allow_blank: true
 
+  accepts_nested_attributes_for :project_versions, allow_destroy: true,
+                                 reject_if: :all_blank
 
   # project plugin project_version 更新
   def self.update_projects
@@ -149,7 +154,7 @@ class Project < ActiveRecord::Base
             plugin = Plugin.find_or_create_by(name: value[0]) do |p|
               p.get_gem_uri
             end
-            project_versions.create(installed: value[1], plugin_id: plugin.id)
+            project_versions.create(installed: value[1], plugin: plugin)
           end
         end
       end
@@ -177,7 +182,7 @@ class Project < ActiveRecord::Base
               plugin = Plugin.find_or_create_by(name: value[0]) do |p|
                 p.get_gem_uri
               end
-              project_versions.create(installed: value[1], plugin_id: plugin.id)
+              project_versions.create(installed: value[1], plugin: plugin)
             end
             names << value[0]
           end
@@ -185,12 +190,12 @@ class Project < ActiveRecord::Base
         # 削除すべきgemがあれば削除する
         project_versions.each do |version|
           unless names.include?(version.plugin.name)
-            target_gem = version.plugin
+            #target_gem = version.plugin
             version.destroy
             # versionが1件もないpluginの場合削する
-            if target_gem.project_versions.blank?
-              target_gem.destroy
-            end
+            # if target_gem.project_versions.blank?
+            #   target_gem.destroy
+            # end
           end
         end
 

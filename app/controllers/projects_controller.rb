@@ -18,6 +18,7 @@ class ProjectsController < ApplicationController
 
   def new
     @project = Project.new
+    @project.project_versions.build
   end
 
   def create
@@ -33,7 +34,7 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    if @project.update(project_params)
+    if @project.update(report_params_for_update)
       redirect_to @project, notice: '正しく更新されました。'
     else
       render action: :edit
@@ -46,13 +47,25 @@ class ProjectsController < ApplicationController
   end
 
   # 更新可能なプロジェクトか確認する
+  # Gemfile情報を持っているprojectは更新できない
   def check_updatable
-
+    if @project.gemfile_content
+      flash[:alert] = 'このプロジェクトは画面から更新できません。'
+      redirect_to @project
+    end
   end
 
   def project_params
     params.require(:project).permit(
-      :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url
+      :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
+      project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
+    )
+  end
+
+  def report_params_for_update
+    params.require(:project).permit(
+      :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
+      project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :_destroy]
     )
   end
 

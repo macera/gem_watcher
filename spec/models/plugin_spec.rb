@@ -44,7 +44,7 @@ RSpec.describe Plugin, type: :model do
       end
       context 'パスがない場合' do
         it 'nilを返すこと' do
-          plugin = create(:plugin, name: 'wkhtmltopdf')
+          plugin = create(:plugin, name: 'wkhtmltopdf', source_code_uri: nil)
           plugin.get_gem_uri
           expect(plugin.source_code_uri).to eq nil
         end

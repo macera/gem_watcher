@@ -5,8 +5,10 @@
   <%= link_to @project.web_url, class: "ui blue button", target: '_blank' do %>
     GitLabページへ <i class="chevron right icon"></i>
   <% end %>
-  <%= link_to edit_project_path(@project), class: "ui orange button" do %>
-    設定確認・変更 <i class="chevron right icon"></i>
+  <% unless @project.gemfile_content %>
+    <%= link_to edit_project_path(@project), class: "ui orange button" do %>
+      設定確認・変更 <i class="chevron right icon"></i>
+    <% end %>
   <% end %>
 </div>
 

@@ -72,7 +72,7 @@
       <h2><i class="github square icon"></i>CHANGELOG(master) CVE情報</h2>
       <%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
       <div class="ui relaxed list">
-        <% @cve_numbers.each do |num| %>
+        <% (@cve_numbers || []).each do |num| %>
           <div class="item">
             <i class="large warning circle middle aligned icon"></i>
             <div class="content">

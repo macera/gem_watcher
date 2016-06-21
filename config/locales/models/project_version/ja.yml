@@ -1,0 +1,10 @@
+ja:
+  activerecord:
+    models:
+      project_version: 'Gemバージョン'
+
+    attributes:
+      project_versions:
+        installed: バージョン
+        requested: バージョン固定
+        plugin_name: 'Gem名'

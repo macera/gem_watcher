@@ -5,5 +5,6 @@ FactoryGirl.define do
     pre         nil
     requested   nil
     project     { create(:project) }
+    plugin      { create(:plugin) }
   end
 end

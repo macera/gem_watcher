@@ -9,10 +9,13 @@ class PluginsController < ApplicationController
   end
 
   def show
-    uri = URI.join(@plugin.source_code_uri, 'blob/master/CHANGELOG.md')
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @cve_numbers = cve_numbers(uri.to_s)
     @securities = @plugin.security_entries
+    # source_code_uriがない場合もあるためひとまずこれでしのぐ
+    if @plugin.source_code_uri
+      uri = URI.join(@plugin.source_code_uri, 'blob/master/CHANGELOG.md')
+      @cve_numbers = cve_numbers(uri.to_s)
+    end
   end
 
   def edit

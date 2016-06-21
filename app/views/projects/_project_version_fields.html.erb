@@ -1,0 +1,10 @@
+<tr class="rows">
+  <td><%= f.text_field :plugin_name, placeholder: '', class: '', maxlength: '50' %></td>
+  <td><%= f.text_field :installed, placeholder: '1.2.3', class: '', maxlength: '20' %></td>
+  <td><%= f.text_field :requested, placeholder: '= 1.0', class: '', maxlength: '20' %></td>
+  <td>
+    <% unless f.index == 0 %>
+      <%= link_to_remove_field "削除", f %>
+    <% end %>
+  </td>
+</tr>
