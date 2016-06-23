@@ -1,0 +1,25 @@
+<h2 class="ui header">ログ一覧</h2>
+
+<table class="ui celled table">
+  <thead>
+    <tr>
+    <th>種別</th>
+    <th>状態</th>
+    <th>内容</th>
+    <th>作成日</th>
+    </tr>
+  </thead>
+<tbody>
+<% @logs.each do |log| %>
+  <tr class="<%= log.state %>">
+    <td><%= t "activerecord.models.#{log.table_name}" %></td>
+    <td><%= log.state %></td>
+    <td width="60%"><%= log.content %></td>
+    <td><%= l log.created_at %></td>
+  </tr>
+<% end %>
+</tbody>
+</table>
+
+<p><%= page_entries_info @logs %></p>
+<%= paginate @logs %>
