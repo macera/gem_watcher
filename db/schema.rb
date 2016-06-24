@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160622051047) do
+ActiveRecord::Schema.define(version: 20160624005134) do
 
   create_table "cron_logs", force: :cascade do |t|
     t.string   "table_name"
@@ -28,8 +28,11 @@ ActiveRecord::Schema.define(version: 20160622051047) do
     t.string   "url"
     t.string   "author"
     t.integer  "plugin_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.integer  "major_version"
+    t.integer  "minor_version"
+    t.string   "patch_version"
   end
 
   add_index "entries", ["plugin_id"], name: "index_entries_on_plugin_id"
@@ -50,9 +53,12 @@ ActiveRecord::Schema.define(version: 20160622051047) do
     t.string   "pre"
     t.integer  "project_id"
     t.integer  "plugin_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
     t.string   "requested"
+    t.integer  "major_version"
+    t.integer  "minor_version"
+    t.string   "patch_version"
   end
 
   add_index "project_versions", ["plugin_id"], name: "index_project_versions_on_plugin_id"

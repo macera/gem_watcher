@@ -1,6 +1,7 @@
 # GitLabからprojectを取得し、projectsテーブルを作成する
 Project.destroy_all
 Plugin.destroy_all
+CronLog.destroy_all
 Project.add_projects({ sort: true })
 # projects = Gitlab.projects.sort_by {|p| p.id }
 # projects.each do |project|
