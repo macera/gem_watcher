@@ -276,9 +276,11 @@ RSpec.describe Project, type: :model do
       end
     end
 
-    # describe '#production?' do
-    # end
+  end
 
+  describe 'コールバックメソッド' do
+    describe '#create_log' do
+    end
   end
 
 end

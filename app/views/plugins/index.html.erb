@@ -35,7 +35,7 @@
       <td class="right aligned">
         <%= plugin.security_entries.count if plugin.security_entries.count > 0 %>
       </td>
-      <td>
+      <td width="50%">
         <% plugin.projects.each do |project| %>
           <%= link_to(project_path(project.id), class: 'item') do %>
             <div class="ui small label">

@@ -4,7 +4,7 @@ class ProjectsController < ApplicationController
   before_action :check_updatable, only: [:edit, :update]
 
   def index
-    @search = Project.ransack(params[:q])
+    @search = Project.order('gitlab_created_at desc').ransack(params[:q])
     # TODO: 新しいプロジェクト順に並べ替える
     @projects = @search.result.page(params[:page])
   end
@@ -34,7 +34,7 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    if @project.update(report_params_for_update)
+    if @project.update_attributes(project_params_for_update)
       redirect_to @project, notice: '正しく更新されました。'
     else
       render action: :edit
@@ -57,16 +57,18 @@ class ProjectsController < ApplicationController
 
   def project_params
     params.require(:project).permit(
-      :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
+      :name,
       project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
     )
   end
 
-  def report_params_for_update
+  def project_params_for_update
     params.require(:project).permit(
-      :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
       project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :_destroy]
     )
   end
+
+# :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
+# :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
 
 end

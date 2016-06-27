@@ -14,7 +14,7 @@ class PluginsController < ApplicationController
     # source_code_uriがない場合もあるためひとまずこれでしのぐ
     if @plugin.source_code_uri
       uri = URI.join(@plugin.source_code_uri, 'blob/master/CHANGELOG.md')
-      @cve_numbers = cve_numbers(uri.to_s)
+      @cve_numbers = []#cve_numbers(uri.to_s)
     end
   end
 

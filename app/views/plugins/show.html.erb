@@ -3,7 +3,7 @@
   <div class="column">
     <div class="ui message">
       <h1><%= @plugin.name %> 詳細情報</h1>
-      <%= link_to @plugin.homepage_uri, class: "ui blue button", target: '_blank' do %>
+      <%= link_to @plugin.homepage_uri || "https://rubygems.org/gems/#{@plugin.name}", class: "ui blue button", target: '_blank' do %>
         公式ホームページ <i class="chevron right icon"></i>
       <% end %>
     </div>
@@ -20,7 +20,7 @@
       <div class="ui relaxed list">
         <% @release_feeds.each do |entry| %>
           <div class="item">
-            <i class="large github middle aligned icon"></i>
+            <i class="diamond red icon"></i>
             <div class="content">
               <span class="header"><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank") %></span>
               <div class="description"><%= l entry.published %></div>
@@ -61,7 +61,14 @@
             <i class="large warning circle middle aligned icon"></i>
             <div class="content">
               <span class="header"><%= link_to topic.title, topic.url, target: '_blank' %></span>
-              <div class="description"><%= l topic.published %></div>
+              <div class="description">
+                <%= l topic.published %>
+                <% cve = topic.title.scan(/CVE-\d+-\d+/).flatten[0] %>
+                <% if cve %>
+                  <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{cve}", target: '_blank', class: 'ui button mini' %>
+                  <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{cve}", target: '_blank', class: 'ui button mini' %>
+                <% end %>
+              </div>
             </div>
           </div>
         <% end %>
@@ -94,6 +101,7 @@
 
 </div><!-- grid -->
 
+<% if false %>
 <div class="ui grid">
   <div class="column">
     <%= link_to edit_plugin_path(@plugin), class: "ui orange button right floated" do %>
@@ -101,4 +109,5 @@
     <% end %>
   </div>
 </div>
+<% end %>
 

@@ -15,14 +15,14 @@
 <div class="ui form">
   <%= form_for @project do |f| %>
 
-    <%# gitlab_id をデフォルトnilに直したら、commit_idからgitlab_idにする %>
-    <% if @project.commit_id.blank? %>
-
+  <% if f.object.new_record? %>
     <div class="field">
       <label>プロジェクト名</label>
-      <%= f.text_field :name, placeholder: '', class: '' %>
+      <%= f.text_field :name, placeholder: '', class: '', disabled: f.object.persisted? %>
     </div>
+  <% end %>
 
+  <% if false %>
     <div class="field">
       <label>プロジェクト説明</label>
       <%= f.text_area :description, placeholder: '', class: '' %>
@@ -40,10 +40,15 @@
       <label>リポジトリURL(SSH)</label>
       <%= f.text_field :ssh_url_to_repo, placeholder: 'git@example.com/project.git', class: '' %>
     </div>
+  <% end %>
 
-    <% end %>
+    <h3 class="ui header">
+      Gem
+      <div class="sub header">
+       Gemfileがないプロジェクトの場合のみ入力してください。
+      </div>
+    </h3>
 
-    <h3 class="ui header">gem</h3>
     <div class="field">
       <table class="ui table">
         <thead>

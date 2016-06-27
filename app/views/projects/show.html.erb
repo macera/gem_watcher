@@ -54,6 +54,7 @@
       <th>最新のバージョン</th>
       <th>現在のバージョン</th>
       <th>固定</th>
+      <th>リリース</th>
       <th></th>
     </tr>
   </thead>
@@ -64,6 +65,7 @@
         <td><%= version.newest %></td>
         <td><%= version.installed %></td>
         <td><%= version.requested %></td>
+        <td><%= version.plugin.entries.count %></td>
         <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
       </tr>
     <% end %>

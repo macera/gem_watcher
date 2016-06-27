@@ -5,75 +5,164 @@
 
       <h2 class="ui header">
         Gem Release Feeds
-        <div class="sub header">それぞれのGemの最新GitHubリリースフィードを表示しています。</div>
+        <div class="sub header">それぞれのGemの最新リリースフィードを表示しています。</div>
       </h2>
 
-
-      <div class="ui form">
-        <%= search_form_for @search, url: feeds_path do |f| %>
-          <div class="inline fields">
-            <div class="field">
-              <%= f.text_field :plugin_name_start, placeholder: 'Gem Name', class: '' %>
-            </div>
-            <div class="field">
-              <%= f.select :plugin_projects_id_eq, Project.all.map{|p| [p.name, p.id]}, { include_blank: "すべてのプロジェクト" }, { class: 'ui dropdown' } %>
-            </div>
-            <%= f.submit '検索', class: "ui olive button" %>
-            <%= link_to 'クリア', feeds_path, class: 'ui button' %>
+      <div class="ui segment">
+        <div class="ui accordion">
+          <div class="title active">
+            <h3 class="ui header">
+              <% if false %><i class="dropdown icon"></i><% end %>
+              Rails Release Feeds
+              <div class="sub header"></div>
+              <%= link_to('詳細情報', plugin_path(@rails_entries.first.plugin.id), class: 'ui button       right floated') if @rails_entries.first %>
+            </h3>
           </div>
-        <% end %>
+          <div class="content active">
+            <table class="ui very basic table compact">
+              <thead>
+                <tr>
+                <th>リリースタイトル(Version)</th>
+                <th>更新日時</th>
+                <th>脆弱性情報(同日)</th>
+                <th>更新可能なプロジェクト</th>
+                <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @rails_entries.each do |entry| %>
+                  <tr>
+                    <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+                    <td><%= l entry.published %></td>
+
+                    <td class="right aligned">
+                      <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
+                      <% unless sec == 0 %>
+                      <span class="ui red circular label">
+                        <%= sec %>
+                      </span>
+                      <% end %>
+                    </td>
+                    <td>
+                      <%# 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか? %>
+                      <%# 自分より小さいメジャーバージョンはあるか？ %>
+                      <%
+                        less_minor_version = nil
+                        less_major_version = nil
+                        @rails_entries.each { |e|
+                          if e != entry && e.major_version == entry.major_version && e.minor_version < entry.minor_version
+                            less_minor_version = true
+                          elsif e != entry && e.major_version < entry.major_version
+                            less_major_version = true
+                          end
+                        }
+                      %>
+
+
+                      <% if less_minor_version.present? %>
+                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version = ? AND patch_version != ?', entry.major_version, entry.minor_version, entry.  patch_version]) %>
+                      <% else %>
+                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version <= ? AND NOT(minor_version = ? AND patch_version = ?)', entry.major_version, entry.minor_version, entry.minor_version, entry.patch_version]) %>
+                      <% end %>
+
+                      <% versions.order(major_version: :desc, minor_version: :desc, patch_version: :desc).limit(3).each do |v| %>
+                        <%= link_to(project_path(v.project.id), class: 'item') do %>
+                          <div class="ui small label">
+                            <%= v.project.name %> <%= v.installed %>
+                          </div>
+                        <% end %>
+                      <% end %>
+                      <% if versions.count > 3 %>
+                        <%= link_to(feed_path(entry.id), class: 'item') do %>
+                          <div class="ui small label">
+                            ...more
+                          </div>
+                        <% end %>
+                      <% end %>
+                    </td>
+
+                    <td>
+                      <%= link_to 'バージョン詳細', feed_path(entry.id), class: "ui small button" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <table class="ui very basic table compact">
-        <thead>
-          <tr>
-          <th>Gem</th>
-          <th>
-            <i class="large github aligned icon"></i>リリースタイトル(Version)
-          </th>
-          <th>更新日時</th>
-          <th>
-            <i class="large folder outline aligned icon"></i>プロジェクト
-            </span>
-          </th>
-          <th></th>
-          </tr>
-        </thead>
-        <tbody>
-        <% @entries.each do |entry| %>
-          <tr>
-            <td><%= entry.plugin.name %></td>
-            <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
-            <td><%= l entry.published %></td>
-            <td>
-              <% entry.plugin.projects.limit(5).each do |project| %>
-                <%= link_to(project_path(project.id), class: 'item') do %>
-                  <div class="ui small label">
-                    <%= project.name %>
-                  </div>
-                <% end %>
-              <% end %>
-              <% if entry.plugin.projects.count > 5 %>
-                <%= link_to plugin_path(entry.plugin.id), class: 'item' do %>
-                  <div class="ui small label">
-                    ...more
-                  </div>
-                <% end %>
-              <% end %>
-            </td>
-            <td>
-              <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
-            </td>
-          </tr>
-        <% end %>
-        </tbody>
-      </table>
+      <div class="ui segment">
+        <div class="ui form">
+          <%= search_form_for @search, url: feeds_path do |f| %>
+            <div class="inline fields">
+              <div class="field">
+                <%= f.text_field :plugin_name_start, placeholder: 'Gem Name', class: '' %>
+              </div>
+              <%= f.submit '検索', class: "ui olive button" %>
+              <%= link_to 'クリア', feeds_path, class: 'ui button' %>
+            </div>
+          <% end %>
+        </div>
 
-      <p>
-        <%= page_entries_info @entries %>
-      </p>
-      <%= paginate @entries %>
+        <table class="ui very basic table compact">
+          <thead>
+            <tr>
+            <% if false %><th>Gem</th><% end %>
+            <th>リリースタイトル(Version)</th>
+            <th>更新日時</th>
+            <th>脆弱性情報(同日)</th>
+            <th>更新可能なプロジェクト</th>
+            <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @entries.each do |entry| %>
+              <tr>
+                <% if false %><td><%= entry.plugin.name %></td><% end %>
+                <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+                <td><%= l entry.published %></td>
 
+                <td class="right aligned">
+                  <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
+                  <% unless sec == 0 %>
+                    <span class="ui red circular label">
+                      <%= sec %>
+                    </span>
+                  <% end %>
+                </td>
+
+                <td>
+                  <% entries = entry.plugin.project_versions.where(['installed < ?', entry.version]) %>
+                  <% entries.order('installed desc').limit(3).each do |v| %>
+                    <%= link_to(project_path(v.project.id), class: 'item') do %>
+                      <div class="ui small label">
+                        <%= v.project.name %> <%= v.installed %>
+                      </div>
+                    <% end %>
+                  <% end %>
+                  <% if entries.count > 3 %>
+                    <%= link_to plugin_path(entry.plugin.id), class: 'item' do %>
+                      <div class="ui small label">
+                        ...more
+                      </div>
+                    <% end %>
+                  <% end %>
+                </td>
+                <td>
+                  <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+
+        <p>
+          <%= page_entries_info @entries %>
+        </p>
+        <%= paginate @entries %>
+
+      </div>
     </div>
   </div>
 </div>

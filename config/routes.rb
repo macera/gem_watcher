@@ -8,6 +8,8 @@ Rails.application.routes.draw do
 
   resources :plugins, only: [:index, :show, :edit, :update]
 
+  resources :cron_logs, only: [:index]
+
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

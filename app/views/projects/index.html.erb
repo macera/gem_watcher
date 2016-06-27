@@ -18,6 +18,7 @@
     <th>プロジェクト名</th>
     <th>gem数</th>
     <th>更新可能なgem数</th>
+    <th>作成日</th>
     <th></th>
     </tr>
   </thead>
@@ -31,6 +32,7 @@
     <td class="right aligned">
       <%= project.project_versions.newest_versions.count %>
     </td>
+    <td><%= l(project.gitlab_created_at, format: :date) if project.gitlab_created_at %></td>
     <td class="center aligned">
       <%= link_to '詳細', project_path(project.id), class: "ui small button" %>
     </td>
@@ -44,4 +46,6 @@
 </p>
 <%= paginate @projects %>
 
-<%= link_to 'プロジェクトの登録', new_project_path, class: 'ui primary button right floated' %>
+<% if Rails.env.development? %>
+  <%= link_to 'プロジェクトの登録', new_project_path, class: 'ui primary button right floated', style: 'color:red' %>
+<% end %>
