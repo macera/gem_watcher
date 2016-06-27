@@ -1,7 +1,7 @@
 ja:
   activerecord:
     models:
-      entry: Feed
+      entry: リリースフィード
 
     attributes:
       entry:

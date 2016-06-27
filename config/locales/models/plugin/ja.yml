@@ -5,5 +5,5 @@ ja:
 
     attributes:
       plugin:
-        name: プロジェクト名
+        name: Gem名
         source_code_uri: ソースコードURL

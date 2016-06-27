@@ -1,10 +1,49 @@
-<h2 class="ui header">ログ一覧</h2>
+<h2 class="ui header">
+  ログ
+  <div class="sub header">
+    DB処理やエラーのログ一覧。
+    <ul style="list-style:none;">
+      <li>※ リリースフィードの追加ログは出ません。</li>
+      <li>※ プロジェクトのそれぞれのgem(version)の追加・更新・削除のログは出ません。</li>
+    </ul>
+  </div>
+</h2>
+
+<div class="ui form">
+  <%= search_form_for @search, url: cron_logs_path do |f| %>
+    <div class="inline fields">
+      <div class="field">
+        <div class="ui radio checkbox">
+          <%= f.radio_button :state_eq, 1 %>
+          <%= f.label :state_eq_1, 'エラーログのみ' %>
+        </div>
+      </div>
+      <div class="field">
+        <div class="ui radio checkbox">
+         <%= f.radio_button :state_eq, 0 %>
+          <%= f.label :state_eq_0, '成功ログのみ' %>
+        </div>
+      </div>
+      <div class="field">
+        <div class="ui radio checkbox">
+         <%= f.radio_button :state_eq, '' %>
+          <%= f.label :state_eq_, 'すべて' %>
+        </div>
+      </div>
+      <div class="field">
+        <%= f.select :table_name_eq, table_lists, { include_blank: "すべて" }, { class: 'ui dropdown' } %>
+      </div>
+      <%= f.submit '検索', class: "ui olive button" %>
+      <%= link_to 'クリア', cron_logs_path, class: 'ui button' %>
+    </div>
+  <% end %>
+</div>
 
 <table class="ui celled table">
   <thead>
     <tr>
+    <th>発生箇所(テーブル)</th>
     <th>種別</th>
-    <th>状態</th>
     <th>内容</th>
     <th>作成日</th>
     </tr>

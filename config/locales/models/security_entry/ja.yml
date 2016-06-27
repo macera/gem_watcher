@@ -1,0 +1,9 @@
+ja:
+  activerecord:
+    models:
+      security_entries: セキュリティフィード
+      security_entry:   セキュリティフィード
+
+    attributes:
+      security_entry:
+        title: タイトル

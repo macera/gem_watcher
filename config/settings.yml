@@ -3,5 +3,6 @@ path:
   working_directory: "tmp/projects/<%= Rails.env %>"
 
 feeds:
+  rubygem:           "https://rubygems.org/gems/"
   ruby_security_ann: "https://groups.google.com/forum/feed/ruby-security-ann/topics/atom.xml?num=50"
   rubyonrails_security: "https://groups.google.com/forum/feed/rubyonrails-security/topics/atom.xml?num=50"

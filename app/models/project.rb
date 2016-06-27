@@ -3,17 +3,19 @@
 #
 # Table name: projects
 #
-#  id               :integer          not null, primary key
-#  name             :string
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  gitlab_id        :integer          default(0), not null
-#  http_url_to_repo :string           default(""), not null
-#  ssh_url_to_repo  :string           default(""), not null
-#  commit_id        :string
-#  gemfile_content  :text
-#  web_url          :string
-#  description      :text
+#  id                :integer          not null, primary key
+#  name              :string
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  gitlab_id         :integer
+#  http_url_to_repo  :string           default(""), not null
+#  ssh_url_to_repo   :string           default(""), not null
+#  commit_id         :string
+#  gemfile_content   :text
+#  web_url           :string
+#  description       :text
+#  gitlab_created_at :datetime
+#  gitlab_updated_at :datetime
 #
 
 require "open3"
@@ -23,6 +25,9 @@ class Project < ActiveRecord::Base
 
   has_many :project_versions, dependent: :destroy
 
+  accepts_nested_attributes_for :project_versions, allow_destroy: true,
+                                 reject_if: :all_blank
+
   #validates_associated :project_versions
 
 
@@ -30,32 +35,42 @@ class Project < ActiveRecord::Base
   validates :name, length: { maximum: 50 }, allow_blank: true
   validates :name, format: { with: /\A[a-z0-9_-]+\z/i }, allow_blank: true
 
-  validates :description, length: { maximum: 500 }, allow_blank: true
 
-  validates :web_url, presence: true
-  validates :web_url, length: { maximum: 200 }, allow_blank: true
-  validates :web_url, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
+  #validate :exist_project
 
-  validates :http_url_to_repo, presence: true
-  validates :http_url_to_repo, length: { maximum: 200 }, allow_blank: true
-  validates :http_url_to_repo, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
+  # validates :description, length: { maximum: 500 }, allow_blank: true
 
-  # TODO: ちゃんとした正規表現に修正したい
-  validates :ssh_url_to_repo, presence: true
-  validates :ssh_url_to_repo, length: { maximum: 200 }, allow_blank: true
-  validates :ssh_url_to_repo, format: /\Agit\@\S+\/\S+\.git\z/, allow_blank: true
+  # validates :web_url, presence: true
+  # validates :web_url, length: { maximum: 200 }, allow_blank: true
+  # validates :web_url, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
 
-  accepts_nested_attributes_for :project_versions, allow_destroy: true,
-                                 reject_if: :all_blank
+  # validates :http_url_to_repo, presence: true
+  # validates :http_url_to_repo, length: { maximum: 200 }, allow_blank: true
+  # validates :http_url_to_repo, format: /\A#{URI::regexp(%w(http https))}\z/, allow_blank: true
+
+  # # TODO: ちゃんとした正規表現に修正したい
+  # validates :ssh_url_to_repo, presence: true
+  # validates :ssh_url_to_repo, length: { maximum: 200 }, allow_blank: true
+  # validates :ssh_url_to_repo, format: /\Agit\@\S+\/\S+\.git\z/, allow_blank: true
+
+  after_create :create_created_table_log
+  after_update :create_updated_table_log
 
   # project plugin project_version 更新
   def self.update_projects
     Project.all.each do |project|
-      if project.updated_gemfile?
-        project.update_gemfile               # git pull
-        project.generate_gemfile_lock        # bundle install
-        project.update_plugins_and_versions  # bundle list
-        project.update_versions              # bundle outdated
+      begin
+        if project.updated_gemfile?
+          project.update_gemfile               # git pull
+          project.generate_gemfile_lock        # bundle install
+          project.update_plugins_and_versions  # bundle list
+          project.update_versions              # bundle outdated
+        end
+      rescue StandardError => e
+        CronLog.error_create(
+          table_name: self.class.to_s.underscore,
+          content: "メソッド:#{current_method} 詳細:#{e}"
+        )
       end
     end
   end
@@ -65,26 +80,35 @@ class Project < ActiveRecord::Base
     projects = gitlab_projects
     projects.sort_by! {|p| p.id } if option[:sort]
     projects.each do |project|
-      result = Project.find_by(gitlab_id: project.id)
-      unless result
-        model = Project.new(
-          name: project.name,
-          gitlab_id: project.id,
-          http_url_to_repo: project.http_url_to_repo,
-          ssh_url_to_repo:  project.ssh_url_to_repo,
-          web_url:          project.web_url,
-          description:      project.description
-        )
-        has_gemfile = model.has_gemfile_in_remote?
-        model.gemfile_content = model.newest_gemfile if has_gemfile
-        model.commit_id = model.gitlab_commit_id
-        model.save
-        model.generate_project_files        # git clone
-        if has_gemfile
-          model.generate_gemfile_lock       # bundle install
-          model.create_plugins_and_versions # bundle list
-          model.update_versions             # bundle outdated
+      begin
+        result = Project.find_by(gitlab_id: project.id)
+        unless result
+          model = Project.new(
+            name:              project.name,
+            gitlab_id:         project.id,
+            http_url_to_repo:  project.http_url_to_repo,
+            ssh_url_to_repo:   project.ssh_url_to_repo,
+            web_url:           project.web_url,
+            description:       project.description,
+            gitlab_created_at: project.created_at,
+            gitlab_updated_at: project.last_activity_at
+          )
+          has_gemfile = model.has_gemfile_in_remote?
+          model.gemfile_content = model.newest_gemfile if has_gemfile
+          model.commit_id = model.gitlab_commit_id
+          model.save
+          model.generate_project_files        # git clone
+          if has_gemfile
+            model.generate_gemfile_lock       # bundle install
+            model.create_plugins_and_versions # bundle list
+            model.update_versions             # bundle outdated
+          end
         end
+      rescue StandardError => e
+        CronLog.error_create(
+          table_name: self.class.to_s.underscore,
+          content: "メソッド:#{current_method} 詳細:#{e}"
+        )
       end
     end
   end
@@ -128,7 +152,11 @@ class Project < ActiveRecord::Base
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
       run("git pull origin master")
     end
-    self.update(gemfile_content: newest_gemfile, commit_id: Gitlab.commits(gitlab_id).first.id)
+    self.update(
+      gemfile_content: newest_gemfile,
+      commit_id: Gitlab.commits(gitlab_id).first.id,
+      gitlab_updated_at: Gitlab.project(gitlab_id).last_activity_at
+    )
   end
 
   # bundle install コマンド
@@ -136,7 +164,8 @@ class Project < ActiveRecord::Base
   def generate_gemfile_lock
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
       Bundler.with_clean_env do
-        run("bundle install --without development test")
+        result = run("bundle install --without development test")
+        result
       end
     end
   end
@@ -144,17 +173,28 @@ class Project < ActiveRecord::Base
   # bundle list コマンド
   # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
   def create_plugins_and_versions
+    gemfile_gems = gemfile_list
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
+
         result = run("bundle list")
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
-            plugin = Plugin.find_or_create_by(name: value[0]) do |p|
-              p.get_gem_uri
-            end
-            project_versions.create(installed: value[1], plugin: plugin)
+            # Gemfile情報を取得する(依存先gemを除く)
+            next unless gemfile_gems.include?(value[0])
+
+            new_plugin = Plugin.find_or_initialize_by(name: value[0])
+            # gem情報更新
+            new_plugin.get_gem_uri# if valid_plugin_format?
+            p new_plugin.name
+            new_plugin.save! if new_plugin.changed?
+
+            # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
+            #   p.get_gem_uri
+            # end
+            project_versions.create!(installed: value[1], plugin: new_plugin)
           end
         end
       end
@@ -165,6 +205,7 @@ class Project < ActiveRecord::Base
   # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
   # 既存のgemが削除されたら、project_version削除(versionが1件もなくなればplugin削除)
   def update_plugins_and_versions
+    gemfile_gems = gemfile_list
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
@@ -174,15 +215,21 @@ class Project < ActiveRecord::Base
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
+            # Gemfile情報を取得する(依存先gemを除く)
+            next unless gemfile_gems.include?(value[0])
             version = project_versions.joins(:plugin).where('plugins.name' => value[0]).first
             if version
               # installedのみ更新、他は初期化(update_versionsで取得し直す)
               version.update(installed: value[1], newest: nil, requested: nil)
             else
-              plugin = Plugin.find_or_create_by(name: value[0]) do |p|
-                p.get_gem_uri
-              end
-              project_versions.create(installed: value[1], plugin: plugin)
+              new_plugin = Plugin.find_or_initialize_by(name: value[0])
+              # gem情報更新
+              new_plugin.get_gem_uri# if valid_plugin_format?
+              new_plugin.save! if new_plugin.changed?
+              # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
+              #   p.get_gem_uri
+              # end
+              project_versions.create!(installed: value[1], plugin: new_plugin)
             end
             names << value[0]
           end
@@ -206,6 +253,7 @@ class Project < ActiveRecord::Base
   # bundle outdated コマンド
   # 新しいバージョンが入手可能なgem情報を取得し、project_versionテーブルを更新
   def update_versions
+    gemfile_gems = gemfile_list
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
     Dir.chdir(path) do
       Bundler.with_clean_env do
@@ -213,6 +261,8 @@ class Project < ActiveRecord::Base
         result.each_line do |line|
           next unless line.start_with?('  *')
           plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
+          # Gemfile情報を取得する(依存先gemを除く)
+          next unless gemfile_gems.include?(plugin_name)
           versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
           attr = {}
           versions.each do |v|
@@ -226,7 +276,7 @@ class Project < ActiveRecord::Base
           if project_version
             # development, testのみのgemは除く
             #return unless production?(line)
-            project_version.update(attr)
+            project_version.update!(attr)
           end
         end
       end
@@ -245,28 +295,43 @@ class Project < ActiveRecord::Base
   def newest_gemfile
     Gitlab.file_contents(gitlab_id, 'Gemfile').force_encoding("UTF-8")
     #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
-  rescue => e
-    logger.error "エラーが発生しました: #{e}"
-    # ひとまず自身のファイル内容を返す
-    return gemfile_content
   end
 
   # commit idを返却する
   def gitlab_commit_id
     Gitlab.commits(gitlab_id).first.id
-  rescue => e
-    logger.error "エラーが発生しました: #{e}"
-    return nil
+  end
+
+  def gemfile_list
+    target_gems = []
+    gemfile_content.each_line do |line|
+      text = line.gsub(/(\t|\n)/, "") # タブ、改行を消す
+      text =~ /#/
+      text = text.gsub(/#{$'}/, "") # #コメント以降を削除する
+      next if text == ""
+      target = text.scan(/gem\s['|"](\S+)['|"]/).flatten[0]
+      target_gems << target if target
+    end
+    target_gems
   end
 
   private
 
+  # コールバック
+  # 新規プロジェクト作成ログ
+  def create_created_table_log
+    CronLog.success_table(self.class.to_s.underscore, name, :create)
+  end
+  # プロジェクトの更新ログ
+  def create_updated_table_log
+    CronLog.success_table(self.class.to_s.underscore, name, :update)
+  end
+
+
+
   # gitlabのプロジェクト一覧を返す
   def self.gitlab_projects
     Gitlab.projects
-  rescue => e
-    logger.error "エラーが発生しました: #{e}"
-    return []
   end
 
   # ファイルの存在チェック(トップディレクトリのみ)
@@ -282,9 +347,6 @@ class Project < ActiveRecord::Base
   # ルートディレクトリ・ファイル一覧を返す API
   def root_dirs
     Gitlab.tree(gitlab_id)
-  rescue => e
-    logger.error "エラーが発生しました: #{e}"
-    return []
   end
 
   # コマンドを実行する
@@ -292,6 +354,14 @@ class Project < ActiveRecord::Base
     result, e, s = Open3.capture3(command)
     return result
   end
+
+# バリデーション
+
+  # project存在チェック
+  # def exist_project
+
+  # end
+
 
   # prodution環境で使うgemか調べる
   # def production?(line)
