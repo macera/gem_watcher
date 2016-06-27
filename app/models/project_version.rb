@@ -20,6 +20,11 @@
 #  index_project_versions_on_plugin_id   (plugin_id)
 #  index_project_versions_on_project_id  (project_id)
 #
+# Foreign Keys
+#
+#  fk_rails_05dec520fc  (plugin_id => plugins.id)
+#  fk_rails_eee5ff31fd  (project_id => projects.id)
+#
 
 class ProjectVersion < ActiveRecord::Base
   belongs_to :project

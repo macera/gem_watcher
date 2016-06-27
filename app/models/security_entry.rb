@@ -17,6 +17,10 @@
 #
 #  index_security_entries_on_plugin_id  (plugin_id)
 #
+# Foreign Keys
+#
+#  fk_rails_ca529e1cfc  (plugin_id => plugins.id)
+#
 
 class SecurityEntry < ActiveRecord::Base
   belongs_to :plugin

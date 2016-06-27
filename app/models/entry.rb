@@ -19,16 +19,21 @@
 #
 #  index_entries_on_plugin_id  (plugin_id)
 #
+# Foreign Keys
+#
+#  fk_rails_bbb581ce25  (plugin_id => plugins.id)
+#
 
 class Entry < ActiveRecord::Base
   belongs_to :plugin
 
-  scope :newest_plugins, -> { joins(:plugin).where.not('plugins.name' => 'rails').group('entries.plugin_id').having('Max(entries.published)') }
-
+  # rails リリースタイトル一覧
   scope :rails_entries, -> {
-    joins(:plugin).where('plugins.name' => 'rails').group('major_version', 'minor_version').having('Max(entries.published)').order('Max(entries.published) desc').limit(3)
-    #joins(:plugin).where('plugins.name' => 'rails').order('entries.published desc').limit(10)
+    joins(:plugin).where('plugins.name' => 'rails').where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').pluck('max(published)')).order('published desc').limit(3)
   }
+
+  # rails以外のgem リリースタイトル一覧
+  scope :newest_plugins, -> { joins(:plugin).where.not('plugins.name' => 'rails').where('published' => Entry.select('max(published), plugin_id').group('plugin_id').pluck('max(published)')).order('entries.published desc') }
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)

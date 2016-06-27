@@ -15,7 +15,7 @@
               <% if false %><i class="dropdown icon"></i><% end %>
               Rails Release Feeds
               <div class="sub header"></div>
-              <%= link_to('詳細情報', plugin_path(@rails_entries.first.plugin.id), class: 'ui button       right floated') if @rails_entries.first %>
+              <%= link_to('詳細情報', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
             </h3>
           </div>
           <div class="content active">
@@ -57,7 +57,6 @@
                           end
                         }
                       %>
-
 
                       <% if less_minor_version.present? %>
                         <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version = ? AND patch_version != ?', entry.major_version, entry.minor_version, entry.  patch_version]) %>
@@ -133,6 +132,7 @@
                 </td>
 
                 <td>
+
                   <% entries = entry.plugin.project_versions.where(['installed < ?', entry.version]) %>
                   <% entries.order('installed desc').limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
@@ -148,6 +148,7 @@
                       </div>
                     <% end %>
                   <% end %>
+
                 </td>
                 <td>
                   <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>

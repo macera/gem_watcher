@@ -9,7 +9,8 @@ class FeedsController < ApplicationController
     @latest_minor_version = entries.where(major_version: @latest_major_version).maximum(:minor_version) #2
 
     @search = Entry.newest_plugins.ransack(params[:q])
-    @entries = @search.result.order('entries.published desc').page(params[:page])
+    #binding.pry
+    @entries = @search.result.order('published desc').page(params[:page])
   end
 
   def show

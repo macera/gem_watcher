@@ -188,7 +188,7 @@ class Project < ActiveRecord::Base
             new_plugin = Plugin.find_or_initialize_by(name: value[0])
             # gem情報更新
             new_plugin.get_gem_uri# if valid_plugin_format?
-            p new_plugin.name
+            # p new_plugin.name
             new_plugin.save! if new_plugin.changed?
 
             # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|

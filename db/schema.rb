@@ -13,6 +13,9 @@
 
 ActiveRecord::Schema.define(version: 20160624005134) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "cron_logs", force: :cascade do |t|
     t.string   "table_name"
     t.text     "content"
@@ -35,7 +38,7 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.string   "patch_version"
   end
 
-  add_index "entries", ["plugin_id"], name: "index_entries_on_plugin_id"
+  add_index "entries", ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
 
   create_table "plugins", force: :cascade do |t|
     t.string   "name"
@@ -61,8 +64,8 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.string   "patch_version"
   end
 
-  add_index "project_versions", ["plugin_id"], name: "index_project_versions_on_plugin_id"
-  add_index "project_versions", ["project_id"], name: "index_project_versions_on_project_id"
+  add_index "project_versions", ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
+  add_index "project_versions", ["project_id"], name: "index_project_versions_on_project_id", using: :btree
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
@@ -91,6 +94,10 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.datetime "updated_at", null: false
   end
 
-  add_index "security_entries", ["plugin_id"], name: "index_security_entries_on_plugin_id"
+  add_index "security_entries", ["plugin_id"], name: "index_security_entries_on_plugin_id", using: :btree
 
+  add_foreign_key "entries", "plugins"
+  add_foreign_key "project_versions", "plugins"
+  add_foreign_key "project_versions", "projects"
+  add_foreign_key "security_entries", "plugins"
 end
