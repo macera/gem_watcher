@@ -66,10 +66,15 @@ class Project < ActiveRecord::Base
           project.update_plugins_and_versions  # bundle list
           project.update_versions              # bundle outdated
         end
+      rescue Gitlab::Error::Forbidden => e
+        CronLog.error_create(
+          table_name: self.class.to_s.underscore,
+          content: "メソッド:add_projects 詳細:#{e}"
+        )
       rescue StandardError => e
         CronLog.error_create(
           table_name: self.class.to_s.underscore,
-          content: "メソッド:#{current_method} 詳細:#{e}"
+          content: "メソッド:update_projects 詳細:#{e}"
         )
       end
     end
@@ -96,7 +101,8 @@ class Project < ActiveRecord::Base
           has_gemfile = model.has_gemfile_in_remote?
           model.gemfile_content = model.newest_gemfile if has_gemfile
           model.commit_id = model.gitlab_commit_id
-          model.save
+          a = model.save
+
           model.generate_project_files        # git clone
           if has_gemfile
             model.generate_gemfile_lock       # bundle install
@@ -104,10 +110,15 @@ class Project < ActiveRecord::Base
             model.update_versions             # bundle outdated
           end
         end
-      rescue StandardError => e
+      rescue Gitlab::Error::Forbidden => e
         CronLog.error_create(
           table_name: self.class.to_s.underscore,
-          content: "メソッド:#{current_method} 詳細:#{e}"
+          content: "メソッド:add_projects 詳細:#{e}"
+        )
+      rescue => e
+        CronLog.error_create(
+          table_name: self.class.to_s.underscore,
+          content: "メソッド:add_projects 詳細:#{e}"
         )
       end
     end
@@ -137,12 +148,31 @@ class Project < ActiveRecord::Base
     exist_file?('Gemfile')
   end
 
-    # git clone コマンド
+  def has_gemfile_lock_in_remote?
+    exist_file?('Gemfile.lock')
+  end
+
   # projectのディレクトリを作成
   def generate_project_files
     path = "#{Rails.root}/#{Settings.path.working_directory}"
     Dir.chdir(path) do
-      run("git clone #{ssh_url_to_repo}")
+      # TODO: gitを使わなくて済むように修正する
+      run("mkdir #{name}") unless Dir.exist?("name")
+    end
+    Dir.chdir("#{path}/#{name}") do
+      if has_gemfile_in_remote?
+        gemfile = File.open('Gemfile', "w") do |file|
+          file.print(newest_gemfile)
+        end
+        # engine gemをコメントアウトする
+        comment_gems_with_path_option
+      end
+      if has_gemfile_lock_in_remote?
+        File.open('Gemfile.lock', "w") do |file|
+          file.print(newest_gemfile_lock)
+        end
+      end
+      #run("git clone #{ssh_url_to_repo}")
     end
   end
 
@@ -150,7 +180,20 @@ class Project < ActiveRecord::Base
   # リポジトリ更新(Gemfileを更新するため)
   def update_gemfile
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-      run("git pull origin master")
+      # TODO: gitを使わなくて済むように修正する
+      if has_gemfile_in_remote?
+        gemfile = File.open('Gemfile', "w+") do |file|
+          file.print(newest_gemfile)
+        end
+        # engine gemをコメントアウトする
+        comment_gems_with_path_option
+      end
+      if has_gemfile_lock_in_remote?
+        File.open('Gemfile.lock', "w") do |file|
+          file.print(newest_gemfile_lock)
+        end
+      end
+      #run("git pull origin master")
     end
     self.update(
       gemfile_content: newest_gemfile,
@@ -297,6 +340,10 @@ class Project < ActiveRecord::Base
     #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
   end
 
+  def newest_gemfile_lock
+    Gitlab.file_contents(gitlab_id, 'Gemfile.lock').force_encoding("UTF-8")
+  end
+
   # commit idを返却する
   def gitlab_commit_id
     Gitlab.commits(gitlab_id).first.id
@@ -313,6 +360,19 @@ class Project < ActiveRecord::Base
       target_gems << target if target
     end
     target_gems
+  end
+
+  def comment_gems_with_path_option
+    Tempfile.open('tmp_file') do |tf|
+      IO.foreach('Gemfile') do |line|
+        if line =~ /gem\s['|"]\S+['|"].+path:/
+          line = line.gsub(/gem/, '#gem')
+        end
+        tf.write line
+      end
+      tf.close
+      FileUtils.copy_file tf.path, 'Gemfile'
+    end
   end
 
   private
