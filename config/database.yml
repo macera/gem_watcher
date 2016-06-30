@@ -24,7 +24,7 @@ test:
 production:
   <<: *default
   username: gem-watcher
-  database: gem-watcher_production
+  database: gem_watcher_production
   password: gem-watcher
 
 
