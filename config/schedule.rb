@@ -5,9 +5,12 @@
 
 # Example:
 #
-# set :output, "/path/to/my/cron_log.log"
-#
+set :output, 'log/crontab.log'
+set :environment, :production
 
+# テスト
+#set :environment, :development
+# every '*/1 * * * *' do
 
 every 8.hours do
   # 新規のプロジェクトがあれば追加する
