@@ -207,7 +207,7 @@ class Project < ActiveRecord::Base
   def generate_gemfile_lock
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
       Bundler.with_clean_env do
-        result = run("bundle install --without development test")
+        result = run("bundle install --path vendor/bundle --without development test")
         result
       end
     end
