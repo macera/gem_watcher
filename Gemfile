@@ -56,13 +56,11 @@ gem 'feedjira'
 gem 'nokogiri'
 gem 'open_uri_redirections'
 
-#gem 'kaminari'
-
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
 # Use Unicorn as the app server
-# gem 'unicorn'
+gem 'unicorn'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
