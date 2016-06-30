@@ -7,6 +7,10 @@ namespace :feeds do
 
     Plugin.all.each do |plugin|
       begin
+        # TODO: rubygemに登録されていないgem フラグをもたせるようにしたい
+        gem_info = Gems.info(plugin.name)
+        next unless gem_info.is_a?(Hash)
+
         path = URI.join("#{Settings.feeds.rubygem}#{plugin.name}/versions.atom")
         content = Feedjira::Feed.fetch_and_parse(path.to_s)
         content.entries.each do |entry|
