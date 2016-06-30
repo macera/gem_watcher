@@ -32,7 +32,12 @@
               <tbody>
                 <% @rails_entries.each do |entry| %>
                   <tr>
-                    <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+                    <td>
+                      <% if entry.published > 5.weeks.ago %>
+                        <span class="ui orange horizontal label">New</span>
+                      <% end %>
+                      <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
+                    </td>
                     <td><%= l entry.published %></td>
 
                     <td class="right aligned">
@@ -119,7 +124,12 @@
             <% @entries.each do |entry| %>
               <tr>
                 <% if false %><td><%= entry.plugin.name %></td><% end %>
-                <td><%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %></td>
+                <td>
+                  <% if entry.published > 1.weeks.ago %>
+                    <span class="ui orange horizontal label">New</span>
+                  <% end %>
+                  <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
+                </td>
                 <td><%= l entry.published %></td>
 
                 <td class="right aligned">
