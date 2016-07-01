@@ -208,7 +208,15 @@ class Project < ActiveRecord::Base
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
       Bundler.with_clean_env do
         result = run("bundle install --path vendor/bundle --without development test")
-        result
+        # エラーチェック
+        unless result.include? 'Bundle complete!'
+          message = ''
+          if result =~ /An\serror\soccurred\swhile\sinstalling/
+            message = $'
+          end
+            raise "bundle install でエラーが発生しました。=> #{message}"
+          end
+        end
       end
     end
   end
