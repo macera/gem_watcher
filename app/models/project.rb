@@ -214,8 +214,7 @@ class Project < ActiveRecord::Base
           if result =~ /An\serror\soccurred\swhile\sinstalling/
             message = $'
           end
-            raise "bundle install でエラーが発生しました。=> #{message}"
-          end
+          raise "bundle install でエラーが発生しました。=> #{message}"
         end
       end
     end
