@@ -2,16 +2,17 @@
 rails_releases:
   -
     major: 3
-    minor:
+    min_minor: 2 # rails3.2...3.9系まで表示する
+    max_minor: 9
   -
     major: 4
-    minor: 1
-  -
-    major: 4
-    minor: 2
+    min_minor: 1 # rails4.1...4.9系まで表示する
+    max_minor: 9
   -
     major: 5
-    minor:
+    min_minor: 0 # rails5.0...5.9系まで表示する
+    max_minor: 9
+  # rails5.0より大きいメジャーバージョンは、x.0..x.9まで表示する
 
 # projectをcloneする際の置き場
 path:
