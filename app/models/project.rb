@@ -222,6 +222,10 @@ class Project < ActiveRecord::Base
       Bundler.with_clean_env do
 
         result = run("bundle list")
+        # エラーチェック
+        if result.include? "Could not find"
+          raise "bundle list でエラーが発生しました。=> #{result}"
+        end
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
@@ -253,6 +257,10 @@ class Project < ActiveRecord::Base
     Dir.chdir(path) do
       Bundler.with_clean_env do
         result = run("bundle list")
+        # エラーチェック
+        if result.include? "Could not find"
+          raise "bundle list でエラーが発生しました。=> #{result}"
+        end
         names = []
         # 新規gemがあれば追加する
         result.each_line do |line|
@@ -301,6 +309,10 @@ class Project < ActiveRecord::Base
     Dir.chdir(path) do
       Bundler.with_clean_env do
         result = run("bundle outdated")
+        # エラーチェック
+        if result.include? "Could not find"
+          raise "bundle outdated でエラーが発生しました。=> #{result}"
+        end
         result.each_line do |line|
           next unless line.start_with?('  *')
           plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
