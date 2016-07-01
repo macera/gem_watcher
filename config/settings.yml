@@ -1,3 +1,18 @@
+# トップに表示するrails version系列
+rails_releases:
+  -
+    major: 3
+    minor:
+  -
+    major: 4
+    minor: 1
+  -
+    major: 4
+    minor: 2
+  -
+    major: 5
+    minor:
+
 # projectをcloneする際の置き場
 path:
   working_directory: "tmp/projects/<%= Rails.env %>"
