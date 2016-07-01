@@ -31,50 +31,29 @@ class Entry < ActiveRecord::Base
 
   scope :rails_entries, -> {
 
+    entries = joins(:plugin).where('plugins.name' => 'rails')
+
     conditions = [[]]
     conditions[0] << '(major_version > ?)' #rails5以上は表示する
     conditions << Settings.rails_releases.last.major
     Settings.rails_releases.each do |v|
-      conditions[0] << "(major_version = ? AND (minor_version between ? AND ?))"
-      conditions << v.major
-      conditions << v.min_minor
-      conditions << v.max_minor
+      if v.minor
+        conditions[0] << "(major_version = ? AND (minor_version between ? AND ?))"
+        conditions << v.major
+        conditions << v.minor
+        conditions << 9 # 最大のマイナーバージョン
+      else
+        version = entries.where(major_version: v.major).maximum('minor_version')
+        conditions[0] << "(major_version = ? AND minor_version = ?)"
+        conditions << v.major
+        conditions << version
+      end
     end
     conditions[0] = conditions[0].join(' OR ')
 
-    joins(:plugin).where('plugins.name' => 'rails').where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').having(conditions).pluck('max(published)')).order('published desc')
+    entries.where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').having(conditions).pluck('max(published)')).order('published desc')
   }
 
-
-  #scope :rails_entries, -> {
-
-    # result = []
-
-    # entries = joins(:plugin).where('plugins.name' => 'rails')
-
-    # Settings.rails_releases.each do |v|
-    #   result << entries.where('published' => entries.where(['major_version = ? AND minor_version <= ?', v.major, v.minor]).maximum("published"))
-
-    # end
-    # result
-
-    #Entry.joins(:plugin).where('plugins.name' => 'rails').where(['major_version = ? AND minor_version <= ?', v.major, v.minor]).having('max(published) = published')
-
-    # conditions = [[]]
-    # Settings.rails_releases.each do |v|
-    #   # if v.minor_version
-    #   #   conditions[0] << '(major_version = ? AND minor_version = ?)'
-    #   # else
-    #     conditions[0] << '(major_version = ? AND minor_version <= ?)'
-    #   #end
-    #   conditions << v.major
-    #   conditions << v.minor
-    # end
-    # conditions[0] = conditions[0].join(' OR ')
-
-    # joins(:plugin).where('plugins.name' => 'rails').where(conditions).where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').pluck('max(published)')).order('published desc')
-
-  #}
   # scope :rails_entries, -> {
   #   joins(:plugin).where('plugins.name' => 'rails').where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').pluck('max(published)')).order('published desc').limit(4)
   # }
