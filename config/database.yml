@@ -21,16 +21,16 @@ test:
   <<: *default
   database: gem-watcher_test
 
-production:
-  <<: *default
-  username: gem-watcher
-  password: gem-watcher
-  database: gem-watcher_production
 # production:
 #   <<: *default
-#   username: gem_watcher
-#   database: gem_watcher_production
-#   password: gem_watcher
+#   username: gem-watcher
+#   password: gem-watcher
+#   database: gem-watcher_production
+production:
+  <<: *default
+  username: gem_watcher
+  database: gem_watcher_production
+  password: gem_watcher
 
 
 # default: &default
