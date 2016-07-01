@@ -103,7 +103,7 @@ class Project < ActiveRecord::Base
           model.commit_id = model.gitlab_commit_id
           a = model.save
 
-          model.generate_project_files        # git clone
+          model.generate_project_files        # git clone(mkdir + copy Gemfile)
           if has_gemfile
             model.generate_gemfile_lock       # bundle install
             model.create_plugins_and_versions # bundle list
@@ -384,7 +384,8 @@ class Project < ActiveRecord::Base
   def comment_gems_with_path_option
     Tempfile.open('tmp_file') do |tf|
       IO.foreach('Gemfile') do |line|
-        if line =~ /gem\s['|"]\S+['|"].+path:/
+        # TODO: 一旦git githubもエラー防ぐ為に外します
+        if line =~ /gem\s['|"]\S+['|"].+(path|git|github):/
           line = line.gsub(/gem/, '#gem')
         end
         tf.write line
@@ -405,8 +406,6 @@ class Project < ActiveRecord::Base
   def create_updated_table_log
     CronLog.success_table(self.class.to_s.underscore, name, :update)
   end
-
-
 
   # gitlabのプロジェクト一覧を返す
   def self.gitlab_projects
