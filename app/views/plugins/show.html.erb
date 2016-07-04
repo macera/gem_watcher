@@ -3,7 +3,7 @@
   <div class="column">
     <div class="ui message">
       <h1><%= @plugin.name %> 詳細情報</h1>
-      <%= link_to @plugin.homepage_uri || "https://rubygems.org/gems/#{@plugin.name}", class: "ui blue button", target: '_blank' do %>
+      <%= link_to @plugin.homepage_uri || "#{Settings.feeds.rubygem}#{@plugin.name}", class: "ui blue button", target: '_blank' do %>
         公式ホームページ <i class="chevron right icon"></i>
       <% end %>
     </div>
@@ -65,8 +65,8 @@
                 <%= l topic.published %>
                 <% cve = topic.title.scan(/CVE-\d+-\d+/).flatten[0] %>
                 <% if cve %>
-                  <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{cve}", target: '_blank', class: 'ui button mini' %>
-                  <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{cve}", target: '_blank', class: 'ui button mini' %>
+                  <%= link_to "CVE", "#{Settings.links.cve}#{cve}", target: '_blank', class: 'ui button mini' %>
+                  <%= link_to "JVN", "#{Settings.links.jvn}#{cve}", target: '_blank', class: 'ui button mini' %>
                 <% end %>
               </div>
             </div>
@@ -86,8 +86,8 @@
               <div class="header">
                 <%= num %>
                 <span style="padding-left:10em;">
-                <%= link_to "CVE", "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{num}", target: '_blank', class: 'ui button small' %>
-                <%= link_to "JVN", "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{num}", target: '_blank', class: 'ui button small' %>
+                  <%= link_to "CVE", "#{Settings.links.cve}#{num}", target: '_blank', class: 'ui button small' %>
+                  <%= link_to "JVN", "#{Settings.links.jvn}#{num}", target: '_blank', class: 'ui button small' %>
                 </span>
               </div>
             </div>

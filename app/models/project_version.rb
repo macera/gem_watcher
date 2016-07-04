@@ -66,6 +66,7 @@ class ProjectVersion < ActiveRecord::Base
       end
     end
 
+    # installedを細かいバージョンカラムにセットする
     def set_versions
       return unless installed
       version = installed.scan(/(\d+)\.(\d+)\.(\S+)/).first # 0.0.0

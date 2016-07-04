@@ -13,20 +13,25 @@
 # cronのログ保存用テーブル
 class CronLog < ActiveRecord::Base
 
+  # ログ種別
   enum state: {
     success: 0,
     error:   1
   }
+
+  # エラーログを作成する
   def self.error_create(attributes={})
     create!({ state: states[:error] }.merge(attributes))
     logger.error attributes[:content]
   end
 
+  # 成功ログを作成する
   def self.success_create(attributes={})
     create!({ state: states[:success] }.merge(attributes))
     logger.error attributes[:content]
   end
 
+  # テーブル操作ログを作成する
   def self.success_table(table, name, action)
     case action
     when :create; action_name = '作成'

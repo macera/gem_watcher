@@ -1,5 +1,6 @@
 module ProjectsHelper
 
+  # 行を削除する
   def link_to_remove_field(name, f)
     f.hidden_field(:_destroy) +
     link_to("#", { onclick: "remove_fields(this)", class: "ui button red" }) do
@@ -7,6 +8,7 @@ module ProjectsHelper
     end
   end
 
+  # 行を追加する
   def link_to_add_fields(name, f, association, target)
     new_object = f.object.class.reflect_on_association(association).klass.new
     fields = f.fields_for(association, new_object, :child_index => "new_#{association}") do |builder|

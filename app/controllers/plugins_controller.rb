@@ -8,6 +8,7 @@ class PluginsController < ApplicationController
   #   @plugins = @search.result.page(params[:page])
   # end
 
+  # gem詳細画面
   def show
     @release_feeds = @plugin.entries.order('published desc').limit(5)
     @securities = @plugin.security_entries

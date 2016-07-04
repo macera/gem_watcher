@@ -22,14 +22,10 @@ require "open3"
 
 class Project < ActiveRecord::Base
   has_many :plugins, through: :project_versions
-
   has_many :project_versions, dependent: :destroy
 
   accepts_nested_attributes_for :project_versions, allow_destroy: true,
                                  reject_if: :all_blank
-
-  #validates_associated :project_versions
-
 
   validates :name, presence: true
   validates :name, length: { maximum: 50 }, allow_blank: true
@@ -368,6 +364,7 @@ class Project < ActiveRecord::Base
     Gitlab.commits(gitlab_id).first.id
   end
 
+  # Gemfileに書かれているgem一覧を配列で返す
   def gemfile_list
     target_gems = []
     gemfile_content.each_line do |line|
@@ -381,6 +378,7 @@ class Project < ActiveRecord::Base
     target_gems
   end
 
+  # Gemfile path:オプションのgemをコメントアウトする(engineなどは管理しないため)
   def comment_gems_with_path_option
     Tempfile.open('tmp_file') do |tf|
       IO.foreach('Gemfile') do |line|
@@ -434,12 +432,6 @@ class Project < ActiveRecord::Base
   end
 
 # バリデーション
-
-  # project存在チェック
-  # def exist_project
-
-  # end
-
 
   # prodution環境で使うgemか調べる
   # def production?(line)

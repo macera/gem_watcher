@@ -28,7 +28,6 @@ class Entry < ActiveRecord::Base
   belongs_to :plugin
 
   # rails リリースタイトル一覧
-
   scope :rails_entries, -> {
 
     entries = joins(:plugin).where('plugins.name' => 'rails')
@@ -66,6 +65,7 @@ class Entry < ActiveRecord::Base
     %w()
   end
 
+  # versionを返す
   def version
     if minor_version && patch_version
       "#{major_version.to_s}.#{minor_version.to_s}.#{patch_version}"

@@ -26,10 +26,10 @@
             (<%= l s.published %>)
             <% cve = s.title.scan(/CVE-\d+-\d+/).flatten[0] %>
             <% if cve %>
-              <%= link_to "http://cve.mitre.org/cgi-bin/cvename.cgi?name=#{cve}", target: '_blank', class: '' do %>
+              <%= link_to "#{Settings.links.cve}#{cve}", target: '_blank', class: '' do %>
                 <div class="ui mini label">CVE</div>
               <% end %>
-              <%= link_to "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword=#{cve}", target: '_blank', class: '' do %>
+              <%= link_to "#{Settings.links.jvn}#{cve}", target: '_blank', class: '' do %>
                 <div class="ui mini label">JVN</div>
               <% end %>
             <% end %>

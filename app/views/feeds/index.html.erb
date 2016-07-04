@@ -12,7 +12,6 @@
         <div class="ui accordion">
           <div class="title active">
             <h3 class="ui header">
-              <% if false %><i class="dropdown icon"></i><% end %>
               Rails Release Feeds
               <div class="sub header"></div>
               <%= link_to('詳細情報', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
@@ -33,19 +32,16 @@
                 <% @rails_entries.each do |entry| %>
                   <tr>
                     <td>
-                      <% if entry.published > 5.weeks.ago %>
-                        <span class="ui orange horizontal label">New</span>
-                      <% end %>
+                      <%= new_label(entry.published) %>
                       <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
                     </td>
                     <td><%= l entry.published %></td>
-
                     <td class="right aligned">
                       <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
                       <% unless sec == 0 %>
-                      <span class="ui red circular label">
-                        <%= sec %>
-                      </span>
+                        <span class="ui red circular label">
+                          <%= sec %>
+                        </span>
                       <% end %>
                     </td>
                     <td>
@@ -53,18 +49,15 @@
                       <%# 自分より小さいメジャーバージョンはあるか？ %>
                       <%
                         less_minor_version = nil
-                        less_major_version = nil
                         @rails_entries.each { |e|
                           if e != entry && e.major_version == entry.major_version && e.minor_version < entry.minor_version
                             less_minor_version = true
-                          elsif e != entry && e.major_version < entry.major_version
-                            less_major_version = true
                           end
                         }
                       %>
 
                       <% if less_minor_version.present? %>
-                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version = ? AND patch_version != ?', entry.major_version, entry.minor_version, entry.  patch_version]) %>
+                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version = ? AND patch_version != ?', entry.major_version, entry.minor_version, entry.patch_version]) %>
                       <% else %>
                         <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version <= ? AND NOT(minor_version = ? AND patch_version = ?)', entry.major_version, entry.minor_version, entry.minor_version, entry.patch_version]) %>
                       <% end %>
@@ -76,13 +69,7 @@
                           </div>
                         <% end %>
                       <% end %>
-                      <% if versions.count > 3 %>
-                        <%= link_to(feed_path(entry.id), class: 'item') do %>
-                          <div class="ui small label">
-                            ...more
-                          </div>
-                        <% end %>
-                      <% end %>
+                      <%= show_more(versions.count, feed_path(entry.id)) %>
                     </td>
 
                     <td>
@@ -112,7 +99,6 @@
         <table class="ui very basic table compact">
           <thead>
             <tr>
-            <% if false %><th>Gem</th><% end %>
             <th>リリースタイトル(Version)</th>
             <th>更新日時</th>
             <th>脆弱性情報(同日)</th>
@@ -123,16 +109,13 @@
           <tbody>
             <% @entries.each do |entry| %>
               <tr>
-                <% if false %><td><%= entry.plugin.name %></td><% end %>
                 <td>
-                  <% if entry.published > 1.weeks.ago %>
-                    <span class="ui orange horizontal label">New</span>
-                  <% end %>
+                  <%= new_label(entry.published) %>
                   <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
                 </td>
                 <td><%= l entry.published %></td>
-
                 <td class="right aligned">
+                  <%# 12時間以内 %>
                   <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
                   <% unless sec == 0 %>
                     <span class="ui red circular label">
@@ -140,9 +123,7 @@
                     </span>
                   <% end %>
                 </td>
-
                 <td>
-
                   <% entries = entry.plugin.project_versions.where(['installed < ?', entry.version]) %>
                   <% entries.order('installed desc').limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
@@ -151,14 +132,7 @@
                       </div>
                     <% end %>
                   <% end %>
-                  <% if entries.count > 3 %>
-                    <%= link_to plugin_path(entry.plugin.id), class: 'item' do %>
-                      <div class="ui small label">
-                        ...more
-                      </div>
-                    <% end %>
-                  <% end %>
-
+                  <%= show_more(entries.count, plugin_path(entry.plugin.id)) %>
                 </td>
                 <td>
                   <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
@@ -168,9 +142,7 @@
           </tbody>
         </table>
 
-        <p>
-          <%= page_entries_info @entries %>
-        </p>
+        <p><%= page_entries_info @entries %></p>
         <%= paginate @entries %>
 
       </div>

@@ -3,12 +3,14 @@ class ProjectsController < ApplicationController
   before_action :set_project, only: [:show, :edit, :update]
   before_action :check_updatable, only: [:edit, :update]
 
+  # プロジェクト一覧画面
   def index
     @search = Project.order('gitlab_created_at desc').ransack(params[:q])
     # TODO: 新しいプロジェクト順に並べ替える
     @projects = @search.result.page(params[:page])
   end
 
+  # プロジェクト詳細画面
   def show
     # TODO: ransackに変えたい(ransackのradioボタン検索が難しい)
     form_values = params[:plugin_form] ? params[:plugin_form] : { updated: '1' }
@@ -30,9 +32,11 @@ class ProjectsController < ApplicationController
   #   end
   # end
 
+  # プロジェクト編集画面
   def edit
   end
 
+  # プロジェクト更新
   def update
     if @project.update_attributes(project_params_for_update)
       redirect_to @project, notice: '正しく更新されました。'

@@ -48,16 +48,16 @@
     <th>作成日</th>
     </tr>
   </thead>
-<tbody>
-<% @logs.each do |log| %>
-  <tr class="<%= log.state %>">
-    <td><%= t "activerecord.models.#{log.table_name}" %></td>
-    <td><%= log.state %></td>
-    <td width="60%"><%= log.content %></td>
-    <td><%= l log.created_at %></td>
-  </tr>
-<% end %>
-</tbody>
+  <tbody>
+  <% @logs.each do |log| %>
+    <tr class="<%= log.state %>">
+      <td><%= t "activerecord.models.#{log.table_name}" %></td>
+      <td><%= log.state %></td>
+      <td width="60%"><%= log.content %></td>
+      <td><%= l log.created_at %></td>
+    </tr>
+  <% end %>
+  </tbody>
 </table>
 
 <p><%= page_entries_info @logs %></p>

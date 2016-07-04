@@ -1,11 +1,12 @@
+#
+# プロジェクトの詳細画面のgem検索フォームモデル
+#
 class PluginForm
   include ActiveModel::Model
 
   attr_accessor :name, :updated
 
-  def search
-  end
-
+  # プロジェクト毎にgemを検索する
   def search_by_project(project)
     scoped = project.project_versions
     scoped = scoped.newest_versions    if updated == '1'
