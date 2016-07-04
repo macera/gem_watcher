@@ -48,7 +48,7 @@ RSpec.describe Project, type: :model do
         @project_dir1 = working_directory.join(@project1.name)
         FileUtils.mkdir_p @project_dir1
         allow(@project1).to receive(:run).with("bundle list").and_return(
-          "Gems included by the bundle:\n  * actionmailer (4.2.6)\n  * actionpack (4.2.6)\n  * actionview (4.2.6)\n"
+          "Gems included by the bundle:\n  * rails (4.2.6)\n  * sass-rails (5.0.0)\n  * uglifier (1.3.0)\n"
         )
       end
       after do
@@ -64,9 +64,9 @@ RSpec.describe Project, type: :model do
       end
       context 'Pluginに同じ名前のgemが保存されている場合' do
         before do
-          create(:plugin, name: 'actionmailer')
-          create(:plugin, name: 'actionpack')
-          create(:plugin, name: 'actionview')
+          create(:plugin, name: 'rails')
+          create(:plugin, name: 'sass-rails')
+          create(:plugin, name: 'uglifier')
         end
         it 'pluginが作成されないこと' do
           expect{ @project1.create_plugins_and_versions }.to change{ Plugin.count }.by(0)
@@ -79,7 +79,14 @@ RSpec.describe Project, type: :model do
 
     describe '#update_plugins_and_versions' do
       before do
-        @project1 = create(:project, gitlab_id: 1)
+        @project1 = create(:project, gitlab_id: 1,
+          gemfile_content: <<EOS
+            source 'https://rubygems.org'
+            gem 'rails', '4.2.6'
+            gem 'config'
+            gem 'nokogiri'
+EOS
+        )
         @project_dir1 = working_directory.join(@project1.name)
         FileUtils.mkdir_p @project_dir1
         @rails_plugin = create(:plugin, name: 'rails')
