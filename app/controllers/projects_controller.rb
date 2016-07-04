@@ -16,19 +16,19 @@ class ProjectsController < ApplicationController
     @plugins = @form.search_by_project(@project)
   end
 
-  def new
-    @project = Project.new
-    @project.project_versions.build
-  end
+  # def new
+  #   @project = Project.new
+  #   @project.project_versions.build
+  # end
 
-  def create
-    @project = Project.new(project_params)
-    if @project.save
-      redirect_to @project, notice: '正しく登録されました。'
-    else
-      render action: :new
-    end
-  end
+  # def create
+  #   @project = Project.new(project_params)
+  #   if @project.save
+  #     redirect_to @project, notice: '正しく登録されました。'
+  #   else
+  #     render action: :new
+  #   end
+  # end
 
   def edit
   end
@@ -55,20 +55,17 @@ class ProjectsController < ApplicationController
     end
   end
 
-  def project_params
-    params.require(:project).permit(
-      :name,
-      project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
-    )
-  end
+  # def project_params
+  #   params.require(:project).permit(
+  #     :name,
+  #     project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
+  #   )
+  # end
 
   def project_params_for_update
     params.require(:project).permit(
       project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :_destroy]
     )
   end
-
-# :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
-# :name, :description, :http_url_to_repo, :ssh_url_to_repo, :web_url,
 
 end

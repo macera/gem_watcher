@@ -3,9 +3,6 @@
 
   <div class="left menu">
     <%= link_to 'Projects', projects_path, class: 'item' %>
-    <% if Rails.env.development? %>
-      <%= link_to 'Gems', plugins_path, class: 'item', style: 'color:red' %>
-    <% end %>
     <%= link_to 'Log', cron_logs_path, class: 'item' %>
 
   </div>
