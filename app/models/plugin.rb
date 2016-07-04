@@ -19,17 +19,17 @@ class Plugin < ActiveRecord::Base
   has_many :security_entries, dependent: :destroy
 
   validates :name, presence: true
-  validates :name, length: { maximum: 50 }, allow_blank: true
-  validates :name, format: { with: /\A[a-z0-9\._-]+\z/i }, allow_blank: true
+  # validates :name, length: { maximum: 50 }, allow_blank: true
+  # validates :name, format: { with: /\A[a-z0-9\._-]+\z/i }, allow_blank: true
 
   # gem更新画面のみ
   #validates :source_code_uri, presence: true, on: :update
-  validates :source_code_uri, length: { maximum: 200 }, allow_blank: true
-  validates :source_code_uri, format: {
-                                with: /\A#{URI::regexp(%w(http https))}\/\z/,
-                                message: "はURL形式で入力して下さい。末尾は/で終了する必要があります。"
-                              },
-                              allow_blank: true
+  # validates :source_code_uri, length: { maximum: 200 }, allow_blank: true
+  # validates :source_code_uri, format: {
+  #                               with: /\A#{URI::regexp(%w(http https))}\/\z/,
+  #                               message: "はURL形式で入力して下さい。末尾は/で終了する必要があります。"
+  #                             },
+  #                             allow_blank: true
 
   after_create  :create_created_table_log
   after_update  :create_updated_table_log
