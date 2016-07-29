@@ -18,13 +18,13 @@ describe ProjectsController do
   describe 'GET #show' do
     it "指定のプロジェクトが返却されること" do
       project = create(:project)
-      get :show, id: project.id
+      get :show, params: { id: project.id }
       expect(assigns(:project)).to eq project
     end
 
     it "showテンプレートが表示されること" do
       project = create(:project)
-      get :show, id: project.id
+      get :show, params: { id: project.id }
       expect(response).to render_template :show
     end
   end
