@@ -13,8 +13,7 @@ class ProjectsController < ApplicationController
   # プロジェクト詳細画面
   def show
     # TODO: ransackに変えたい(ransackのradioボタン検索が難しい)
-    form_values = params[:plugin_form] ? params[:plugin_form] : { updated: '1' }
-    @form = PluginForm.new(form_values)
+    @form = PluginForm.new(form_params)
     @plugins = @form.search_by_project(@project)
   end
 
@@ -65,6 +64,13 @@ class ProjectsController < ApplicationController
   #     project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
   #   )
   # end
+  def form_params
+    if params[:plugin_form]
+      params[:plugin_form].permit(:name, :updated)
+    else
+      { updated: '1' }
+    end
+  end
 
   def project_params_for_update
     params.require(:project).permit(
