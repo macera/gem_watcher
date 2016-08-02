@@ -2,7 +2,18 @@
 
   <div class="column">
     <div class="ui message">
-      <h1><%= @plugin.name %> 詳細情報</h1>
+      <h1>
+        <%= @plugin.name %>
+        <%= link_to @version.version, plugin_version_path(plugin_id: @plugin.id, id: @version.id) %>
+      </h1>
+
+      <div class="ui large breadcrumb">
+        <%= link_to @plugin.name, plugin_path(@plugin), class: "section" %>
+        <i class="right chevron icon divider"></i>
+        <div class="active section"><%= @version.version %></div>
+      </div>
+      <br>
+
     </div>
   </div>
 
@@ -16,7 +27,7 @@
   <div class="ten wide column">
 
     <div class="ui segment">
-      <h2><i class="rss square icon"></i>セキュリティ情報</h2>
+      <h2><i class="rss square icon"></i>Security Fix Info</h2>
       <%= 'セキュリティ情報は1件もありません。' if @securities.blank? %>
       <div class="ui relaxed list">
         <% @securities.each do |topic| %>
@@ -39,38 +50,30 @@
     </div>
 
     <div class="ui segment">
-      <h2><i class="github square icon"></i>CHANGELOG(master) CVE情報</h2>
-      <%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
-      <div class="ui relaxed list">
-        <% (@cve_numbers || []).each do |num| %>
-          <div class="item">
-            <i class="large warning circle middle aligned icon"></i>
-            <div class="content">
-              <div class="header">
-                <%= num %>
-                <span style="padding-left:10em;">
-                  <%= link_to "CVE", "#{Settings.links.cve}#{num}", target: '_blank', class: 'ui button small' %>
-                  <%= link_to "JVN", "#{Settings.links.jvn}#{num}", target: '_blank', class: 'ui button small' %>
-                </span>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
+      <h2><i class="diamond icon"></i>Runtime Dependency</h2>
+      <% if @dependencies.present? %>
+        <table class="ui very basic table">
+          <thead>
+            <tr>
+              <th>gem名</th>
+              <th>必要条件</th>
+              <th>状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @dependencies.each do |dependency| %>
+              <tr>
+                <td><%= link_to dependency.plugin.name, plugin_path(dependency.plugin.id) %></td>
+                <td><%= dependency.requirements %></td>
+                <td></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
     </div>
 
   </div>
 
 
 </div><!-- grid -->
-
-<% if false %>
-<div class="ui grid">
-  <div class="column">
-    <%= link_to edit_plugin_path(@plugin), class: "ui orange button right floated" do %>
-      設定確認・変更 <i class="chevron right icon"></i>
-    <% end %>
-  </div>
-</div>
-<% end %>
-

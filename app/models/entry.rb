@@ -27,6 +27,9 @@
 class Entry < ActiveRecord::Base
   belongs_to :plugin
 
+  has_many :dependencies, dependent: :destroy
+  # has_many :plugins, through: :dependencies
+
   # rails リリースタイトル一覧
   scope :rails_entries, -> {
 
@@ -57,12 +60,50 @@ class Entry < ActiveRecord::Base
   #   joins(:plugin).where('plugins.name' => 'rails').where('published' => Entry.select('max(published), major_version, minor_version, plugin_id').group('major_version', 'minor_version', 'plugin_id').pluck('max(published)')).order('published desc').limit(4)
   # }
 
-  # rails以外のgem リリースタイトル一覧
-  scope :newest_plugins, -> { joins(:plugin).where.not('plugins.name' => 'rails').where('published' => Entry.select('max(published), plugin_id').group('plugin_id').pluck('max(published)')).order('entries.published desc') }
+  # rails以外のgem リリースタイトル一覧 / Gemfileに書かれているgemのみ
+  scope :newest_plugins, -> {
+    joins(:plugin).merge(Plugin.described).distinct.where.not('plugins.name' => 'rails').where('published' => Entry.select('max(published), plugin_id').group('plugin_id').pluck('max(published)')).order('entries.published desc')
+  }
+
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
     %w()
+  end
+
+  def self.runtime_dependency
+    all.each do |entry|
+      next if entry.dependencies.present?
+      p entry.title
+      entry.create_dependencies
+    end
+  end
+
+  def create_dependencies
+
+    p 'gem:' + plugin.name
+
+    # gem名を取得
+    result = Gems.dependencies([plugin.name])
+    # gem情報を取得
+    return unless result
+    hash = result.find {|h| h[:number] == version }
+    # もしdependenciesが空であればリターン
+    return unless hash
+    return if hash[:dependencies].blank?
+
+    p hash[:dependencies]
+
+    hash[:dependencies].each do |target|
+      plugin = Plugin.find_by(name: target[0])
+      next unless plugin
+      self.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
+    end
+
+  rescue => e
+    binding.pry
+    p e
+
   end
 
   # versionを返す

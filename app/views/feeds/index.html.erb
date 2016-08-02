@@ -14,7 +14,7 @@
             <h3 class="ui header">
               Rails Release Feeds
               <div class="sub header"></div>
-              <%= link_to('詳細情報', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
+              <%= link_to('Rails総合', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
             </h3>
           </div>
           <div class="content active">
@@ -73,7 +73,9 @@
                     </td>
 
                     <td>
-                      <%= link_to 'バージョン詳細', feed_path(entry.id), class: "ui small button" %>
+                      <%= link_to '詳細情報',
+                        plugin_version_path(plugin_id: entry.plugin.id, id: entry.id),
+                        class: "ui small button" %>
                     </td>
                   </tr>
                 <% end %>
@@ -135,7 +137,9 @@
                   <%= show_more(entries.count, plugin_path(entry.plugin.id)) %>
                 </td>
                 <td>
-                  <%= link_to '詳細情報', plugin_path(entry.plugin.id), class: "ui small button" %>
+                  <%= link_to '詳細情報',
+                      plugin_version_path(plugin_id: entry.plugin.id, id: entry.id),
+                      class: "ui small button" %>
                 </td>
               </tr>
             <% end %>

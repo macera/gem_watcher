@@ -10,7 +10,7 @@ class PluginsController < ApplicationController
 
   # gem詳細画面
   def show
-    @release_feeds = @plugin.entries.order('published desc').limit(5)
+    @release_feeds = @plugin.entries.order('published desc').limit(10)
     @securities = @plugin.security_entries
     # source_code_uriがない場合もあるためひとまずこれでしのぐ
     if @plugin.source_code_uri

@@ -16,8 +16,9 @@
   <thead>
     <tr>
     <th>プロジェクト名</th>
-    <th>gem数</th>
-    <th>更新可能なgem数</th>
+    <th>gem数(Gemfileのみ)</th>
+    <th>gem数(依存gem含む)</th>
+    <th>更新可能なgem数(Gemfileのみ)</th>
     <th>作成日</th>
     <th></th>
     </tr>
@@ -27,10 +28,13 @@
   <tr>
     <td><%= project.name %></td>
     <td class="right aligned">
+      <%= project.project_versions.only_gemfile.count %>
+    </td>
+    <td class="right aligned">
       <%= project.project_versions.count %>
     </td>
     <td class="right aligned">
-      <%= project.project_versions.newest_versions.count %>
+      <%= project.project_versions.only_gemfile.newest_versions.count %>
     </td>
     <td><%= l(project.gitlab_created_at, format: :date) if project.gitlab_created_at %></td>
     <td class="center aligned">

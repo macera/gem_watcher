@@ -18,6 +18,8 @@ class Plugin < ActiveRecord::Base
   has_many :entries, dependent: :destroy
   has_many :security_entries, dependent: :destroy
 
+  has_one :dependency
+
   validates :name, presence: true
   # validates :name, length: { maximum: 50 }, allow_blank: true
   # validates :name, format: { with: /\A[a-z0-9\._-]+\z/i }, allow_blank: true
@@ -36,6 +38,10 @@ class Plugin < ActiveRecord::Base
   after_destroy :create_destroyed_table_log
 
   # before_create :get_source_code_uri
+
+  scope :described, -> {
+    joins(:project_versions).merge(ProjectVersion.only_gemfile)
+  }
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 

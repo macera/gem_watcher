@@ -14,6 +14,7 @@
 #  major_version :integer
 #  minor_version :integer
 #  patch_version :string
+#  described     :boolean
 #
 # Indexes
 #
@@ -53,8 +54,9 @@ class ProjectVersion < ActiveRecord::Base
   after_destroy     :destroy_with_plugin_name
 
   #scope :production, -> { where(group_type: nil) }
-  scope :newest_versions, -> { where.not(newest: nil) }
+  scope :newest_versions,  -> { where.not(newest: nil) }
   scope :updated_versions, -> { where(newest: nil) }
+  scope :only_gemfile,     -> { where(described: true) }
 
   private
 

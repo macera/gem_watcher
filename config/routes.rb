@@ -6,7 +6,9 @@ Rails.application.routes.draw do
 
   resources :projects, only: [:index, :show, :edit, :update]
 
-  resources :plugins, only: [:show]
+  resources :plugins, only: [:show] do
+    resources :versions, only: [:show]
+  end
 
   resources :cron_logs, only: [:index]
 
