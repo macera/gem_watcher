@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160803045417) do
+ActiveRecord::Schema.define(version: 20160804043249) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -64,7 +64,6 @@ ActiveRecord::Schema.define(version: 20160803045417) do
     t.string   "installed"
     t.string   "pre"
     t.integer  "project_id"
-    t.integer  "plugin_id"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
     t.string   "requested"
@@ -72,6 +71,9 @@ ActiveRecord::Schema.define(version: 20160803045417) do
     t.integer  "minor_version"
     t.string   "patch_version"
     t.boolean  "described"
+    t.integer  "plugin_id"
+    t.integer  "entry_id"
+    t.index ["entry_id"], name: "index_project_versions_on_entry_id", using: :btree
     t.index ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
     t.index ["project_id"], name: "index_project_versions_on_project_id", using: :btree
   end
@@ -124,6 +126,7 @@ ActiveRecord::Schema.define(version: 20160803045417) do
   add_foreign_key "dependencies", "entries"
   add_foreign_key "dependencies", "plugins"
   add_foreign_key "entries", "plugins"
+  add_foreign_key "project_versions", "entries"
   add_foreign_key "project_versions", "plugins"
   add_foreign_key "project_versions", "projects"
   add_foreign_key "security_advisories", "plugins"

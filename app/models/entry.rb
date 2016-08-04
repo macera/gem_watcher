@@ -26,9 +26,8 @@
 
 class Entry < ActiveRecord::Base
   belongs_to :plugin
-
-  has_many :dependencies, dependent: :destroy
-  # has_many :plugins, through: :dependencies
+  has_one    :project_version
+  has_many   :dependencies, dependent: :destroy
 
   # rails リリースタイトル一覧
   scope :rails_entries, -> {
@@ -71,40 +70,47 @@ class Entry < ActiveRecord::Base
     %w()
   end
 
-  # def self.runtime_dependency
-  #   all.each do |entry|
-  #     next if entry.dependencies.present?
-  #     p entry.title
-  #     entry.create_dependencies
-  #   end
-  # end
+  def self.update_all(plugin)
+    # TODO: rubygemに登録されていないgem フラグをもたせるようにしたい
+    gem_info = Gems.info(plugin.name)
+    return unless gem_info.is_a?(Hash)
 
-  # def create_dependencies
+    path = URI.join("#{Settings.feeds.rubygem}#{plugin.name}/versions.atom")
+    content = Feedjira::Feed.fetch_and_parse(path.to_s)
 
-  #   p 'gem:' + plugin.name
+    content.entries.each do |entry|
+      # 0.0.0
+      version = entry.title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
+      # 0.0
+      unless version
+        version = entry.title.scan(/\S+\s\((\d+)\.(\d+)\)/).first
+      end
+      # 0
+      unless version
+        version = entry.title.scan(/\S+\s\((\d+)\)/).first
+      end
 
-  #   # gem名を取得
-  #   result = Gems.dependencies([plugin.name])
-  #   # gem情報を取得
-  #   return unless result
-  #   hash = result.find {|h| h[:number] == version }
-  #   # もしdependenciesが空であればリターン
-  #   return unless hash
-  #   return if hash[:dependencies].blank?
+      # beta版、ruby以外のplatform等は除く 例: 2.0rc0 5.0.0.rc1
+      next unless version
+      next if version.join('.') =~ /-|beta|rc|racecar|pre/
 
-  #   p hash[:dependencies]
-
-  #   hash[:dependencies].each do |target|
-  #     plugin = Plugin.find_by(name: target[0])
-  #     next unless plugin
-  #     self.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
-  #   end
-
-  # rescue => e
-  #   binding.pry
-  #   p e
-
-  # end
+      local_entry = plugin.entries.where(title: entry.title).first_or_initialize
+      local_entry.update_attributes!(
+        content: entry.content,
+        author: entry.author,
+        url: entry.entry_id,
+        published: entry.published,
+        major_version: version[0],
+        minor_version: version[1],
+        patch_version: version[2]
+      )
+    end
+  rescue => e
+    CronLog.error_create(
+      table_name: 'entry',
+      content: "Gem名:#{plugin.name}, パス:#{path.to_s}, 詳細:#{e}"
+    )
+  end
 
   # versionを返す
   def version

@@ -7,7 +7,6 @@
 #  installed     :string
 #  pre           :string
 #  project_id    :integer
-#  plugin_id     :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  requested     :string
@@ -15,21 +14,26 @@
 #  minor_version :integer
 #  patch_version :string
 #  described     :boolean
+#  plugin_id     :integer
+#  entry_id      :integer
 #
 # Indexes
 #
+#  index_project_versions_on_entry_id    (entry_id)
 #  index_project_versions_on_plugin_id   (plugin_id)
 #  index_project_versions_on_project_id  (project_id)
 #
 # Foreign Keys
 #
 #  fk_rails_05dec520fc  (plugin_id => plugins.id)
+#  fk_rails_4bb073e287  (entry_id => entries.id)
 #  fk_rails_eee5ff31fd  (project_id => projects.id)
 #
 
 class ProjectVersion < ActiveRecord::Base
   belongs_to :project
   belongs_to :plugin
+  belongs_to :entry
 
   attr_accessor :plugin_name # 画面表示用
 
@@ -58,6 +62,20 @@ class ProjectVersion < ActiveRecord::Base
   scope :updated_versions, -> { where(newest: nil) }
   scope :only_gemfile,     -> { where(described: true) }
   scope :no_gemfile,       -> { where(described: false) }
+
+  def security_check
+    if SecurityAdvisory.check_gem(plugin, installed).present?
+      return self
+    end
+    entry.dependencies.each do |dependency|
+      if dependency.plugin
+        project_version = project.project_versions.joins(:plugin).where('plugins.name' => dependency.plugin.name).first
+        result = project_version.security_check
+        return result if result
+      end
+    end
+    return false
+  end
 
   private
 

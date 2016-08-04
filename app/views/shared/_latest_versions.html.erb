@@ -8,7 +8,7 @@
           <i class="diamond red icon"></i>
           <div class="content">
             <span class="header">
-              <%= link_to(truncate(entry.title, length: 30),
+              <%= link_to(entry.version,
                           plugin_version_path(plugin_id: plugin.id, id: entry.id)
                          )
               %>

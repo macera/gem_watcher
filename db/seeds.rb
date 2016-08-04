@@ -1,26 +1,17 @@
 # GitLabからprojectを取得し、projectsテーブルを作成する
+Dependency.destroy_all
+p '*0'
 Project.destroy_all
+p '*1'
 Plugin.destroy_all
+p '*2'
 CronLog.destroy_all
+p '*3'
 Project.add_projects({ sort: true })
-# projects = Gitlab.projects.sort_by {|p| p.id }
-# projects.each do |project|
-#   #unless Project.find_by(gitlab_id: project.gitlab_id)
-#     model = Project.new(
-#       name: project.name,
-#       gitlab_id: project.id,
-#       http_url_to_repo: project.http_url_to_repo,
-#       ssh_url_to_repo: project.ssh_url_to_repo,
-#       commit_id: Gitlab.commits(project.id).first.id
-#     )
-#     model.gemfile_content = model.newest_gemfile if model.has_gemfile?
-#     model.save
-#     model.generate_project_files # git clone
-#     if model.has_gemfile?
-#       model.generate_gemfile_lock  # bundle install
+p '*4'
+Plugin.create_runtime_dependencies
+p '*5'
+SecurityAdvisory.source_update
+p '*6'
+SecurityAdvisory.all_update
 
-#       model.create_plugins_and_versions # bundle list
-#       model.update_for_outdated_version # bundle outdated
-#     end
-#   #end
-# end

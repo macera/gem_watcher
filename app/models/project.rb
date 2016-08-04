@@ -241,15 +241,16 @@ class Project < ActiveRecord::Base
             # p new_plugin.name
             new_plugin.save! if new_plugin.changed?
 
-            # TODO: この時、plugin.entriesを作成
-            # TODO: value[1]のversionのentryをproject_versionに登録する
-            # TODO: pluginは登録しない
+            Entry.update_all(new_plugin)
+            version = split_version(value[1])
+            entry = new_plugin.entries.where(major_version: version[0],
+                                             minor_version: version[1],
+                                             patch_version: version[2]
+            ).first
 
-            # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
-            #   p.get_gem_uri
-            # end
             project_versions.create!(installed: value[1],
                                      plugin:    new_plugin,
+                                     entry:     entry,
                                      described: gemfile_gems.include?(value[0])
             )
           end
@@ -290,16 +291,19 @@ class Project < ActiveRecord::Base
               # gem情報更新
               new_plugin.get_gem_uri# if valid_plugin_format?
               new_plugin.save! if new_plugin.changed?
-              # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
-              #   p.get_gem_uri
-              # end
 
               # TODO: この時、plugin.entriesを作成
+              Entry.update_all(new_plugin)
               # TODO: value[1]のversionのentryをproject_versionに登録する
-              # TODO: pluginは登録しない
+              version = split_version(value[1])
+              entry = new_plugin.entries.where(major_version: version[0],
+                                               minor_version: version[1],
+                                               patch_version: version[2]
+              ).first
 
               project_versions.create!(installed: value[1],
-                                       plugin: new_plugin,
+                                       plugin:    new_plugin,
+                                       entry:     entry,
                                        described: gemfile_gems.include?(value[0])
               )
             end
@@ -457,6 +461,20 @@ class Project < ActiveRecord::Base
   def run(command)
     result, e, s = Open3.capture3(command)
     return result
+  end
+
+  def split_version(string)
+    # 0.0.0
+    version = string.scan(/(\d+)\.(\d+)\.(\S+)/).first
+    # 0.0
+    unless version
+      version = string.scan(/(\d+)\.(\d+)/).first
+    end
+    # 0
+    unless version
+      version = string.scan(/(\d+)/).first
+    end
+    return version
   end
 
 # バリデーション
