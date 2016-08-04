@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160802073322) do
+ActiveRecord::Schema.define(version: 20160803045417) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -25,10 +25,11 @@ ActiveRecord::Schema.define(version: 20160802073322) do
 
   create_table "dependencies", force: :cascade do |t|
     t.string   "requirements"
+    t.string   "provisional_name"
     t.integer  "plugin_id"
     t.integer  "entry_id"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
     t.index ["entry_id"], name: "index_dependencies_on_entry_id", using: :btree
     t.index ["plugin_id"], name: "index_dependencies_on_plugin_id", using: :btree
   end
@@ -90,6 +91,23 @@ ActiveRecord::Schema.define(version: 20160802073322) do
     t.datetime "gitlab_updated_at"
   end
 
+  create_table "security_advisories", force: :cascade do |t|
+    t.integer  "plugin_id"
+    t.string   "framework"
+    t.string   "cve"
+    t.integer  "osvdb"
+    t.text     "description"
+    t.string   "cvss_v2"
+    t.string   "cvss_v3"
+    t.date     "date"
+    t.string   "unaffected_versions"
+    t.string   "patched_versions"
+    t.string   "path"
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
+    t.index ["plugin_id"], name: "index_security_advisories_on_plugin_id", using: :btree
+  end
+
   create_table "security_entries", force: :cascade do |t|
     t.string   "title"
     t.datetime "published"
@@ -108,5 +126,6 @@ ActiveRecord::Schema.define(version: 20160802073322) do
   add_foreign_key "entries", "plugins"
   add_foreign_key "project_versions", "plugins"
   add_foreign_key "project_versions", "projects"
+  add_foreign_key "security_advisories", "plugins"
   add_foreign_key "security_entries", "plugins"
 end

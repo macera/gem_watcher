@@ -71,40 +71,40 @@ class Entry < ActiveRecord::Base
     %w()
   end
 
-  def self.runtime_dependency
-    all.each do |entry|
-      next if entry.dependencies.present?
-      p entry.title
-      entry.create_dependencies
-    end
-  end
+  # def self.runtime_dependency
+  #   all.each do |entry|
+  #     next if entry.dependencies.present?
+  #     p entry.title
+  #     entry.create_dependencies
+  #   end
+  # end
 
-  def create_dependencies
+  # def create_dependencies
 
-    p 'gem:' + plugin.name
+  #   p 'gem:' + plugin.name
 
-    # gem名を取得
-    result = Gems.dependencies([plugin.name])
-    # gem情報を取得
-    return unless result
-    hash = result.find {|h| h[:number] == version }
-    # もしdependenciesが空であればリターン
-    return unless hash
-    return if hash[:dependencies].blank?
+  #   # gem名を取得
+  #   result = Gems.dependencies([plugin.name])
+  #   # gem情報を取得
+  #   return unless result
+  #   hash = result.find {|h| h[:number] == version }
+  #   # もしdependenciesが空であればリターン
+  #   return unless hash
+  #   return if hash[:dependencies].blank?
 
-    p hash[:dependencies]
+  #   p hash[:dependencies]
 
-    hash[:dependencies].each do |target|
-      plugin = Plugin.find_by(name: target[0])
-      next unless plugin
-      self.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
-    end
+  #   hash[:dependencies].each do |target|
+  #     plugin = Plugin.find_by(name: target[0])
+  #     next unless plugin
+  #     self.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
+  #   end
 
-  rescue => e
-    binding.pry
-    p e
+  # rescue => e
+  #   binding.pry
+  #   p e
 
-  end
+  # end
 
   # versionを返す
   def version

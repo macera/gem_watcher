@@ -57,6 +57,7 @@ class ProjectVersion < ActiveRecord::Base
   scope :newest_versions,  -> { where.not(newest: nil) }
   scope :updated_versions, -> { where(newest: nil) }
   scope :only_gemfile,     -> { where(described: true) }
+  scope :no_gemfile,       -> { where(described: false) }
 
   private
 
@@ -65,6 +66,8 @@ class ProjectVersion < ActiveRecord::Base
     def set_plugin_name
       if plugin
         self.plugin_name = plugin_name || plugin.name
+        # 画面で登録したものはGemfileと見なす
+        self.described = true if described.nil?
       end
     end
 

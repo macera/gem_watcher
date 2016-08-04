@@ -2,12 +2,13 @@
 #
 # Table name: dependencies
 #
-#  id           :integer          not null, primary key
-#  requirements :string
-#  plugin_id    :integer
-#  entry_id     :integer
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
+#  id               :integer          not null, primary key
+#  requirements     :string
+#  provisional_name :string
+#  plugin_id        :integer
+#  entry_id         :integer
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
 #
 # Indexes
 #

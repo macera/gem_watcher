@@ -16,9 +16,10 @@
   <thead>
     <tr>
     <th>プロジェクト名</th>
-    <th>gem数(Gemfileのみ)</th>
-    <th>gem数(依存gem含む)</th>
-    <th>更新可能なgem数(Gemfileのみ)</th>
+    <th>Gemfile Gems</th>
+    <th>Dependency Gems</th>
+    <th>更新可能なGems(Gemfile Gems)</th>
+    <th>脆弱性</th>
     <th>作成日</th>
     <th></th>
     </tr>
@@ -31,10 +32,15 @@
       <%= project.project_versions.only_gemfile.count %>
     </td>
     <td class="right aligned">
-      <%= project.project_versions.count %>
+      <%= project.project_versions.no_gemfile.count %>
     </td>
     <td class="right aligned">
       <%= project.project_versions.only_gemfile.newest_versions.count %>
+    </td>
+    <td class="center aligned">
+      <% if project.has_security_alert? %>
+        <i class="warning sign icon red"></i>
+      <% end %>
     </td>
     <td><%= l(project.gitlab_created_at, format: :date) if project.gitlab_created_at %></td>
     <td class="center aligned">

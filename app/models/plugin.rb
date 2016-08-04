@@ -17,6 +17,7 @@ class Plugin < ActiveRecord::Base
   has_many :projects, through: :project_versions
   has_many :entries, dependent: :destroy
   has_many :security_entries, dependent: :destroy
+  has_many :security_advisories, dependent: :destroy
 
   has_one :dependency
 
@@ -48,6 +49,34 @@ class Plugin < ActiveRecord::Base
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
     %w(name)
+  end
+
+  # 依存情報を登録する
+  def self.create_runtime_dependencies
+    self.all.each do |plugin|
+      # gem名を取得
+      result = Gems.dependencies([plugin.name])
+      next unless result
+      plugin.entries.each do |entry|
+        next if entry.dependencies.present?
+        hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
+        # もしdependenciesが空であればリターン
+        next unless hash
+        next if hash[:dependencies].blank?
+        hash[:dependencies].each do |target|
+          plugin = find_by(name: target[0])
+          if plugin
+            entry.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
+          else
+            # 登録されていないgemの場合
+            entry.dependencies.find_or_create_by!(
+                                  requirements: target[1],
+                                  provisional_name: target[0])
+          end
+        end
+      end
+    end
+    return true
   end
 
   # Gemの情報を代入する

@@ -60,7 +60,8 @@
   </thead>
   <tbody>
     <% @plugins.each do |version| %>
-      <tr>
+      <% state = 'negative' if SecurityAdvisory.check_gem(version.plugin, version.installed).present? %>
+      <tr class=<%= state %>>
         <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
         <td><%= version.newest %></td>
         <td><%= version.installed %></td>

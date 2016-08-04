@@ -414,6 +414,13 @@ class Project < ActiveRecord::Base
     end
   end
 
+  def has_security_alert?
+    project_versions.each do |version|
+      return true if SecurityAdvisory.check_gem(version.plugin, version.installed).present?
+    end
+    return false
+  end
+
   private
 
   # コールバック

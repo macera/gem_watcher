@@ -23,4 +23,7 @@ feeds:
 links:
   cve: "http://cve.mitre.org/cgi-bin/cvename.cgi?name="
   jvn: "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword="
+git:
+  ruby_advisory_db: 'https://github.com/rubysec/ruby-advisory-db.git'
+
 
