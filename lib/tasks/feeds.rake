@@ -13,10 +13,8 @@ namespace :feeds do
 
         path = URI.join("#{Settings.feeds.rubygem}#{plugin.name}/versions.atom")
         content = Feedjira::Feed.fetch_and_parse(path.to_s)
-        content.entries.each do |entry|
-          # beta版等は除く
-          next if entry.title =~ /beta|rc|racecar|pre/
 
+        content.entries.each do |entry|
           # 0.0.0
           version = entry.title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
           # 0.0
@@ -27,6 +25,9 @@ namespace :feeds do
           unless version
             version = entry.title.scan(/\S+\s\((\d+)\)/).first
           end
+
+          # beta版、ruby以外のplatform等は除く
+          next if version.join('.') =~ /-|beta|rc|racecar|pre/
 
           local_entry = plugin.entries.where(title: entry.title).first_or_initialize
           local_entry.update_attributes!(
