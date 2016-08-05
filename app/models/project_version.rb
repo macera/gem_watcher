@@ -65,16 +65,17 @@ class ProjectVersion < ActiveRecord::Base
 
   def security_check
     if SecurityAdvisory.check_gem(plugin, installed).present?
-      return self
+      return [self]
     end
+    alert_versions = []
     entry.dependencies.each do |dependency|
       if dependency.plugin
         project_version = project.project_versions.joins(:plugin).where('plugins.name' => dependency.plugin.name).first
         result = project_version.security_check
-        return result if result
+        alert_versions << result.first if result.present?
       end
     end
-    return false
+    return alert_versions.uniq
   end
 
   private

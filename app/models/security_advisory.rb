@@ -95,6 +95,10 @@ class SecurityAdvisory < ApplicationRecord
     advisories
   end
 
+  def title
+    cve_id || osvdb_id
+  end
+
   def cve_id
     "CVE-#{cve}" if cve
   end
@@ -147,6 +151,3 @@ class SecurityAdvisory < ApplicationRecord
   end
 
 end
-
-# SecurityAdvisory.source_update!
-# SecurityAdvisory.all_update

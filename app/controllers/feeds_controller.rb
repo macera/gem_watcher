@@ -9,6 +9,10 @@ class FeedsController < ApplicationController
 
     @search = Entry.newest_plugins.ransack(params[:q])
     @entries = @search.result.order('published desc').page(params[:page])
+    alert = Project.all.find { |p| p.has_security_alert? }
+    if alert.present?
+      flash.now['alert'] = "脆弱性のあるgemが定義されたプロジェクトがあります"
+    end
   end
 
   # フィード(バージョン)詳細画面

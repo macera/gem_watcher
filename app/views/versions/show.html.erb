@@ -34,10 +34,15 @@
           <div class="item">
             <div class="content">
               <div class="header">
-                <span style='color:red;'><%= topic.cve_id %></span>
+                <span style='color:red;'><%= topic.title %></span>
                 <span style="padding-left:10em;">
-                  <%= link_to "CVE", "#{Settings.links.cve}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
-                  <%= link_to "JVN", "#{Settings.links.jvn}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+                  <% if topic.cve %>
+                    <%= link_to "CVE", "#{Settings.links.cve}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+                    <%= link_to "JVN", "#{Settings.links.jvn}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+                  <% else %>
+                    <%= link_to "OSVDB", "#{Settings.links.osvdb}#{topic.osvdb}", target: '_blank', class: 'ui button small' %>
+                    <%= link_to "RubySec", "#{Settings.links.rubysec}#{topic.osvdb_id}", target: '_blank', class: 'ui button small' %>
+                  <% end %>
                 </span>
               </div>
 
@@ -67,14 +72,13 @@
     </div>
 
     <div class="ui segment">
-      <h2><i class="diamond icon"></i>Runtime Dependency</h2>
+      <h2><i class="diamond icon"></i>Runtime Dependencies</h2>
       <% if @dependencies.present? %>
         <table class="ui very basic table">
           <thead>
             <tr>
               <th>gem名</th>
               <th>必要条件</th>
-              <th>状態</th>
             </tr>
           </thead>
           <tbody>
@@ -88,7 +92,6 @@
                   <% end %>
                 </td>
                 <td><%= dependency.requirements %></td>
-                <td></td>
               </tr>
             <% end %>
           </tbody>
