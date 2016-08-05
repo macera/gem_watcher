@@ -26,10 +26,10 @@ class CronLog < ActiveRecord::Base
   end
 
   # 成功ログを作成する
-  def self.success_create(attributes={})
-    create!({ state: states[:success] }.merge(attributes))
-    logger.error attributes[:content]
-  end
+  # def self.success_create(attributes={})
+  #   create!({ state: states[:success] }.merge(attributes))
+  #   logger.error attributes[:content]
+  # end
 
   # テーブル操作ログを作成する
   def self.success_table(table, name, action)

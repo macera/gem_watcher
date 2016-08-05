@@ -2,6 +2,16 @@ require 'rails_helper'
 
 RSpec.describe Plugin, type: :model do
 
+  describe 'スコープ' do
+    describe '.described' do
+    end
+  end
+
+  describe 'クラスメソッド' do
+    describe '.create_runtime_dependencies' do
+    end
+  end
+
   describe 'インスタンスメソッド' do
     describe '#get_gem_uri' do
       before do
@@ -49,6 +59,15 @@ RSpec.describe Plugin, type: :model do
           expect(plugin.source_code_uri).to eq nil
         end
       end
+    end
+  end
+
+  describe 'コールバック' do
+    describe '#create_created_table_log' do
+    end
+    describe '#create_updated_table_log' do
+    end
+    describe '#create_destroyed_table_log' do
     end
   end
 

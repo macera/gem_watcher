@@ -28,4 +28,11 @@ describe ProjectsController do
       expect(response).to render_template :show
     end
   end
+
+  describe 'GET #edit' do
+  end
+
+  describe 'PATCH #update' do
+  end
+
 end

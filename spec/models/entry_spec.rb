@@ -3,6 +3,10 @@ require 'rails_helper'
 RSpec.describe Entry, type: :model do
 
   describe 'スコープ' do
+
+    describe '.rails_entries' do
+    end
+
     describe '.newest_plugins' do
       before do
         plugin1 = create(:plugin)
@@ -19,6 +23,16 @@ RSpec.describe Entry, type: :model do
         expect(Entry.newest_plugins).to eq [@entry3, @entry6]
       end
 
+    end
+  end
+
+  describe 'クラスメソッド' do
+    describe '.update_all' do
+    end
+  end
+
+  describe 'インスタンスメソッド' do
+    describe '#version' do
     end
   end
 

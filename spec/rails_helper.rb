@@ -5,6 +5,14 @@ require File.expand_path('../../config/environment', __FILE__)
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require 'spec_helper'
 require 'rspec/rails'
+
+require 'simplecov'
+
+SimpleCov.start 'rails' do
+  add_filter '/config/'
+  add_filter '/spec/'
+  add_filter '/vendor/'
+end
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -26,7 +34,15 @@ require 'rspec/rails'
 # If you are not using ActiveRecord, you can remove this line.
 ActiveRecord::Migration.maintain_test_schema!
 
+# ruby-advisory-db
+data_directory = Rails.root.join(Settings.path.data_directory)
+
 RSpec.configure do |config|
+  # SimpleCov
+  config.treat_symbols_as_metadata_keys_with_true_values = true
+  config.run_all_when_everything_filtered = true
+  config.filter_run :focus
+  config.order = 'random'
 
   # rails5
   [:controller, :view, :request].each do |type|
@@ -34,6 +50,8 @@ RSpec.configure do |config|
     config.include ::Rails::Controller::Testing::TemplateAssertions, :type => type
     config.include ::Rails::Controller::Testing::Integration, :type => type
   end
+
+  Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
@@ -46,7 +64,10 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) { DatabaseRewinder.strategy = :truncation }
-  config.before(:each)  { DatabaseRewinder.clean_all }
+  config.before(:each) do
+    DatabaseRewinder.clean_all
+    FileUtils.rm_rf(data_directory) if data_directory.exist?
+  end
   config.after(:each)   { DatabaseRewinder.clean }
 
   # RSpec Rails can automatically mix in different behaviours to your tests
@@ -68,4 +89,5 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+  config.include RepositorySupport, type: :model
 end

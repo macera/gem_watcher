@@ -64,6 +64,7 @@ ActiveRecord::Schema.define(version: 20160804043249) do
     t.string   "installed"
     t.string   "pre"
     t.integer  "project_id"
+    t.integer  "plugin_id"
     t.datetime "created_at",    null: false
     t.datetime "updated_at",    null: false
     t.string   "requested"
@@ -71,7 +72,6 @@ ActiveRecord::Schema.define(version: 20160804043249) do
     t.integer  "minor_version"
     t.string   "patch_version"
     t.boolean  "described"
-    t.integer  "plugin_id"
     t.integer  "entry_id"
     t.index ["entry_id"], name: "index_project_versions_on_entry_id", using: :btree
     t.index ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree

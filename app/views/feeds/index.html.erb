@@ -69,7 +69,7 @@
                           </div>
                         <% end %>
                       <% end %>
-                      <%= show_more(versions.count, feed_path(entry.id)) %>
+                      <%= show_more(versions.count, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id)) %>
                     </td>
 
                     <td>

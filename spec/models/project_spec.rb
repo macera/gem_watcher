@@ -36,11 +36,14 @@ RSpec.describe Project, type: :model do
       end
     end
 
-    # describe '#generate_project_files' do
-    # end
+    describe '#generate_project_files' do
+    end
 
-    # describe '#generate_gemfile_lock' do
-    # end
+    describe '#update_gemfile' do
+    end
+
+    describe '#generate_gemfile_lock' do
+    end
 
     describe '#create_plugins_and_versions' do
       before do
@@ -263,6 +266,15 @@ EOS
     #   end
     # end
 
+    describe '#gemfile_list' do
+    end
+
+    describe '#comment_gems_with_path_option' do
+    end
+
+    describe '#has_security_alert?' do
+    end
+
   end
 
   describe 'privateメソッド' do
@@ -285,8 +297,10 @@ EOS
 
   end
 
-  describe 'コールバックメソッド' do
-    describe '#create_log' do
+  describe 'コールバック' do
+    describe '#create_created_table_log' do
+    end
+    describe '#create_updated_table_log' do
     end
   end
 

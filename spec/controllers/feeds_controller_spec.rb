@@ -23,17 +23,4 @@ describe FeedsController do
     end
   end
 
-  describe 'GET #show' do
-    it "指定のプロジェクトが返却されること" do
-      entry = create(:entry)
-      get :show, params: { id: entry.id }
-      expect(assigns(:entry)).to eq entry
-    end
-
-    it "showテンプレートが表示されること" do
-      entry = create(:entry)
-      get :show, params: { id: entry.id }
-      expect(response).to render_template :show
-    end
-  end
 end

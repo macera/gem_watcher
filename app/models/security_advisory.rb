@@ -35,7 +35,7 @@ class SecurityAdvisory < ApplicationRecord
 
   REPOSITORY = Settings.git.ruby_advisory_db
   # Default path to the ruby-advisory-db
-  USER_PATH =  Rails.root.join('data', "ruby-advisory-db")
+  USER_PATH =  Rails.root.join(Settings.path.data_directory)
   # Timestamp for when the database was last updated
   #VENDORED_TIMESTAMP = Time.parse(File.read("#{VENDORED_PATH}.ts")).utc
 
@@ -60,7 +60,6 @@ class SecurityAdvisory < ApplicationRecord
       Dir.glob(directory.join('*.yml')).each do |path|
         load(path, plugin)
       end
-
     end
   end
 
@@ -79,8 +78,8 @@ class SecurityAdvisory < ApplicationRecord
       cvss_v2:             data['cvss_v2'],
       cvss_v3:             data['cvss_v3'],
       date:                data['date'],
-      unaffected_versions: (data['unaffected_versions'] || []).join(','),
-      patched_versions:    (data['patched_versions'] || []).join(',')
+      unaffected_versions: (data['unaffected_versions'] || []).join(':'),
+      patched_versions:    (data['patched_versions'] || []).join(':')
     )
 
   end
@@ -108,19 +107,11 @@ class SecurityAdvisory < ApplicationRecord
   end
 
   def unaffected_versions_list
-    unaffected_versions.split(',').join(' ')
+    unaffected_versions.to_s.split(':').join('、')
   end
 
   def patched_versions_list
-    patched_versions.split(',').join(' ')
-  end
-
-  def criticality
-    case cvss_v2
-    when 0.0..3.3  then :low
-    when 3.3..6.6  then :medium
-    when 6.6..10.0 then :high
-    end
+    patched_versions.to_s.split(':').join('、')
   end
 
   def unaffected?(version)
@@ -137,14 +128,13 @@ class SecurityAdvisory < ApplicationRecord
 
   # version(引数)は脆弱か
   def vulnerable?(version)
-
     !patched?(version) && !unaffected?(version)
   end
 
   private
 
   def parse_versions(string)
-    versions = string.split(',')
+    versions = string.to_s.split(':')
     Array(versions).map do |version|
       Gem::Requirement.new(*version.split(', '))
     end

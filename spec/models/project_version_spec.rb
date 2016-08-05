@@ -3,7 +3,6 @@ require 'rails_helper'
 RSpec.describe ProjectVersion, type: :model do
 
   describe 'スコープ' do
-
     before do
       project1 = create(:project)
       @version1 = create(:version, installed: '4.0.0', newest: '5.0.0', project: project1)
@@ -22,7 +21,31 @@ RSpec.describe ProjectVersion, type: :model do
         expect(ProjectVersion.updated_versions).to eq [@version2]
       end
     end
+    describe '.only_gemfile' do
+    end
+    describe '.no_gemfile' do
+    end
+  end
 
+  describe 'インスタンスメソッド' do
+    describe '#security_check' do
+    end
+  end
+
+  describe 'コールバック' do
+    describe '#set_plugin_name' do
+    end
+    describe '#set_versions' do
+    end
+    describe 'with_plugin_info' do
+    end
+    describe 'destroy_with_plugin_name' do
+    end
+  end
+
+  describe 'プライベートメソッド' do
+    describe '#newest_version' do
+    end
   end
 
 end

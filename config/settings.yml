@@ -14,6 +14,7 @@ rails_releases:
 # projectをcloneする際の置き場
 path:
   working_directory: "tmp/projects/<%= Rails.env %>"
+  data_directory:    "data/<%= Rails.env %>/ruby-advisory-db"
 
 feeds:
   rubygem:           "https://rubygems.org/gems/"

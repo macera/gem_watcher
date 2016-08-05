@@ -79,6 +79,7 @@ group :test do
   gem 'rspec-rails'
   gem 'factory_girl_rails'
   gem 'database_rewinder'
+  gem 'simplecov', :require => false
 end
 
 group :development do

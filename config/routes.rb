@@ -2,7 +2,7 @@ Rails.application.routes.draw do
 
   root 'feeds#index'
 
-  resources :feeds, only: [:index, :show]
+  resources :feeds, only: [:index]
 
   resources :projects, only: [:index, :show, :edit, :update]
 
