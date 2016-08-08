@@ -1,0 +1,60 @@
+<h2 class="ui header">ABOUT</h2>
+
+<div class="ui raised segment">
+  <h4 class="ui header">このWEBアプリについて</h4>
+  <p>
+    GitLabに登録しているプロジェクト（Railsアプリ）のGEMの最新のリリース情報や脆弱性情報をチェックするアプリです。
+  </p>
+</div>
+
+<div class="ui raised segment">
+  <h4 class="ui header">脆弱性情報のソース</h4>
+  <p>
+    GEMの脆弱性情報は以下のリポジトリ、RSS（RSSのURLは「このフォーラムについて」リンク先に記載）より取得しています。
+    <div class="ui list">
+      <div class="item">ruby-advisory-db: <%= link_to nil, "#{Settings.links.ruby_advisory_db}", target: '_blank' %></div>
+      <div class="item">ruby-security-ann(RSS): <%= link_to nil, "#{Settings.links.ruby_security_ann}", target: '_blank' %></div>
+      <div class="item">rubyonrails-security(RSS): <%= link_to nil, "#{Settings.links.rubyonrails_security}", target: '_blank' %></div>
+    </div>
+
+  </p>
+</div>
+
+<div class="ui raised segment">
+  <h4 class="ui header">プロジェクトについて</h4>
+  <p>
+    GitLabに登録されているプロジェクトです。<br>
+    このアプリに新たにプロジェクトを追加する場合は、このアプリ用のGitLabアカウントをそのプロジェクトに招待してください。<br>
+    Gemfile、Gemfile.lockファイルをチェックするため、Reporter、Developer以上の権限が必要です。<br>
+    ※ Gemfileがないプロジェクトは、Gem情報を自動で登録できません。その場合、プロジェクト詳細画面より、編集画面に進み、Gem情報を登録して下さい。<br>
+    ※ development・test環境のみ、pathオプション指定のgemは登録できません。<br>
+    <span style="color:red;">※ 現在のバージョンでは、git, githubオプション指定のgemも登録できません。改修予定。</span>
+  </p>
+</div>
+
+<div class="ui raised segment">
+  <h4 class="ui header">GEMについて</h4>
+  <p>
+    GEMに関する情報(リリース情報、依存関係等)は、以下のサイトより取得しています。<br>
+    rubygem.org: <%= link_to nil, "#{Settings.links.rubygem}", target: '_blank' %><br>
+    GEMのリリース情報において、プレリリースバージョンは表示しません。<br>
+    また、このサイトでは、日時（Gemのリリース日時など）は、日本時間を表示しています。<br>
+  </p>
+</div>
+
+<div class="ui raised segment">
+  <h4 class="ui header">Rails Releaseについて</h4>
+  <p>
+    TOPページのRails Releaseは、監視したいメジャーバージョン(またはメジャーバージョンとマイナーバージョンの組み合わせ)ごとに最新のリリース情報を表示しています。<br>
+    監視したいバージョン系列を変更する場合は、管理者にお問い合わせください。(設定ファイルにより指定しているため)
+  </p>
+</div>
+
+<div class="ui raised segment">
+  <h4 class="ui header">最新情報について</h4>
+  <p>
+    8時間ごとに、プロジェクト、GEM、脆弱性情報の最新情報を取得しています。
+  </p>
+</div>
+
+<p>2016年8月5日更新</p>

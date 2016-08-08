@@ -26,6 +26,10 @@ links:
   jvn: "http://jvndb.jvn.jp/search/index.php?mode=_vulnerability_search_IA_VulnSearch&lang=ja&keyword="
   osvdb: "http://osvdb.org/show/osvdb/"
   rubysec: "http://rubysec.com/advisories/"
+  ruby_advisory_db: https://github.com/rubysec/ruby-advisory-db
+  ruby_security_ann: "https://groups.google.com/forum/#!forum/ruby-security-ann"
+  rubyonrails_security: "https://groups.google.com/forum/#!forum/rubyonrails-security"
+  rubygem: https://rubygems.org/
 git:
   ruby_advisory_db: 'https://github.com/rubysec/ruby-advisory-db.git'
 
