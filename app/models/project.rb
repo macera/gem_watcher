@@ -21,6 +21,8 @@
 require "open3"
 
 class Project < ActiveRecord::Base
+  include DisplayVersion
+
   has_many :plugins, through: :project_versions
   has_many :project_versions, dependent: :destroy
 
@@ -342,10 +344,6 @@ class Project < ActiveRecord::Base
           next unless line.start_with?('  *')
           plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
 
-          # Gemfile情報を取得する(依存先gemを除く)
-          # TODO: 依存先gemはトップには表示しないが、登録できるようにしておきたい
-          #next unless gemfile_gems.include?(plugin_name)
-
           versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
           attr = {}
           versions.each do |v|
@@ -461,20 +459,6 @@ class Project < ActiveRecord::Base
   def run(command)
     result, e, s = Open3.capture3(command)
     return result
-  end
-
-  def split_version(string)
-    # 0.0.0
-    version = string.scan(/(\d+)\.(\d+)\.(\S+)/).first
-    # 0.0
-    unless version
-      version = string.scan(/(\d+)\.(\d+)/).first
-    end
-    # 0
-    unless version
-      version = string.scan(/(\d+)/).first
-    end
-    return version
   end
 
 # バリデーション

@@ -29,4 +29,21 @@ module RepositorySupport
     )
   end
 
+  def security_advisory_create(path, plugin)
+    data = YAML.load_file(path)
+    create(:security_advisory,
+      path:                path,
+      framework:           data['framework'],
+      cve:                 data['cve'],
+      osvdb:               data['osvdb'],
+      description:         data['description'],
+      cvss_v2:             data['cvss_v2'],
+      cvss_v3:             data['cvss_v3'],
+      date:                data['date'],
+      unaffected_versions: (data['unaffected_versions'] || []).join(':'),
+      patched_versions:    (data['patched_versions'] || []).join(':'),
+      plugin:              plugin
+    )
+  end
+
 end

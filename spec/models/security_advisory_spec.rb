@@ -51,11 +51,22 @@ RSpec.describe SecurityAdvisory, type: :model do
     end
 
     describe '.all_update' do
+
     end
+
     describe '.load' do
+      before do
+        @plugin = create(:plugin, name: 'actionpack')
+      end
+      it 'SecurityAdvisoryが1件追加されること' do
+        expect{ SecurityAdvisory.load(path, @plugin) }.to change{ SecurityAdvisory.count }.by(1)
+      end
     end
+
     describe '.check_gem' do
+
     end
+
   end
 
   describe 'インスタンスメソッド' do

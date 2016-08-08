@@ -6,13 +6,6 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 require 'spec_helper'
 require 'rspec/rails'
 
-require 'simplecov'
-
-SimpleCov.start 'rails' do
-  add_filter '/config/'
-  add_filter '/spec/'
-  add_filter '/vendor/'
-end
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -39,7 +32,7 @@ data_directory = Rails.root.join(Settings.path.data_directory)
 
 RSpec.configure do |config|
   # SimpleCov
-  config.treat_symbols_as_metadata_keys_with_true_values = true
+  #config.treat_symbols_as_metadata_keys_with_true_values = true
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
   config.order = 'random'
@@ -67,6 +60,7 @@ RSpec.configure do |config|
   config.before(:each) do
     DatabaseRewinder.clean_all
     FileUtils.rm_rf(data_directory) if data_directory.exist?
+    FileUtils.rm_rf(Dir.glob(Rails.root.join(Settings.path.working_directory, '*')))
   end
   config.after(:each)   { DatabaseRewinder.clean }
 

@@ -33,6 +33,9 @@
 class SecurityAdvisory < ApplicationRecord
   belongs_to :plugin
 
+  after_create  :create_created_table_log
+  #after_destroy :create_destroyed_table_log
+
   REPOSITORY = Settings.git.ruby_advisory_db
   # Default path to the ruby-advisory-db
   USER_PATH =  Rails.root.join(Settings.path.data_directory)
@@ -139,5 +142,15 @@ class SecurityAdvisory < ApplicationRecord
       Gem::Requirement.new(*version.split(', '))
     end
   end
+
+  # 新規脆弱性情報作成ログ
+  def create_created_table_log
+    CronLog.success_table(self.class.to_s.underscore, "#{plugin.name}: #{title}", :create)
+  end
+
+  # 脆弱性情報削除ログ
+  # def create_destroyed_table_log
+  #   CronLog.success_table(self.class.to_s.underscore, "#{plugin.name}: #{title}", :delete)
+  # end
 
 end

@@ -34,11 +34,12 @@ class Plugin < ActiveRecord::Base
   #                             },
   #                             allow_blank: true
 
+  #before_destroy :destroy_relatitons
+
   after_create  :create_created_table_log
   after_update  :create_updated_table_log
   after_destroy :create_destroyed_table_log
 
-  # before_create :get_source_code_uri
 
   scope :described, -> {
     joins(:project_versions).merge(ProjectVersion.only_gemfile)
@@ -102,6 +103,17 @@ class Plugin < ActiveRecord::Base
     end
 
 # コールバック
+
+  def destroy_relatitons
+    p 'gemの関連するもの削除する'
+    if dependency.present?
+      dependency.destroy
+    end
+    if project_versions.present?
+      project_versions.destroy_all
+    end
+    return true
+  end
 
   # 新規gem作成ログ
   def create_created_table_log

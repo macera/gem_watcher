@@ -4,6 +4,11 @@ RSpec.describe Project, type: :model do
 
   let(:working_directory) { Rails.root.join(Settings.path.working_directory) }
 
+  let(:rss) { File.read("spec/fixtures/rails_versions_atom_little.xml") } # 3件のentry
+  let(:freedjira_parsed) { Feedjira::Parser::Atom.parse(rss) }
+  let(:rss_path) { URI.join("#{Settings.feeds.rubygem}rails/versions.atom").to_s }
+  #Feedjira::Parser::Atom.parse(File.read("spec/fixtures/rails_versions_atom.xml"))
+
   # describe 'クラスメソッド' do
 
   #   describe '.update_all' do
@@ -36,7 +41,54 @@ RSpec.describe Project, type: :model do
       end
     end
 
+    # projectのディレクトリを作成
     describe '#generate_project_files' do
+      before do
+        @project = create(:project)
+        allow(@project).to receive(:newest_gemfile).and_return(
+          "source 'https://rubygems.org'\n\n\n# Bundle edge Rails instead: gem 'rails', github: 'rails/rails'\ngem 'rails', '4.2.6'\ngem 'rails', '4.2.6'\n"
+        )
+      end
+      context 'Gemfile.lockがある場合' do
+        before do
+          allow(@project).to receive(:root_dirs).and_return([
+            Gitlab::ObjectifiedHash.new(name: 'app'),
+            Gitlab::ObjectifiedHash.new(name: 'Gemfile'),
+            Gitlab::ObjectifiedHash.new(name: 'Gemfile.lock'),
+          ])
+          allow(@project).to receive(:newest_gemfile_lock).and_return(
+            "GEM\n  remote: https://rubygems.org/\n  specs:\nactionmailer (4.2.6)\nactionpack   (= 4.2.6)\n rails (4.2.6)\n"
+          )
+          @project.generate_project_files
+        end
+        it 'プロジェクト名のディレクトリを作成すること' do
+          expect(File.directory?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}")).to be true
+        end
+        it 'Gemfileを作成すること' do
+          expect(File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}/Gemfile")).to be true
+        end
+        it 'Gemfile.lockを作成すること' do
+          expect(File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}/Gemfile.lock")).to be true
+        end
+      end
+      context 'Gemfile.lockがない場合' do
+        before do
+          allow(@project).to receive(:root_dirs).and_return([
+            Gitlab::ObjectifiedHash.new(name: 'app'),
+            Gitlab::ObjectifiedHash.new(name: 'Gemfile')
+          ])
+          @project.generate_project_files
+        end
+        it 'プロジェクト名のディレクトリを作成すること' do
+          expect(File.directory?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}")).to be true
+        end
+        it 'Gemfileを作成すること' do
+          expect(File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}/Gemfile")).to be true
+        end
+        it 'Gemfile.lockは作成しないこと' do
+          expect(File.exist?("#{Rails.root}/#{Settings.path.working_directory}/#{@project.name}/Gemfile.lock")).to be false
+        end
+      end
     end
 
     describe '#update_gemfile' do
@@ -51,31 +103,43 @@ RSpec.describe Project, type: :model do
         @project_dir1 = working_directory.join(@project1.name)
         FileUtils.mkdir_p @project_dir1
         allow(@project1).to receive(:run).with("bundle list").and_return(
-          "Gems included by the bundle:\n  * rails (4.2.6)\n  * sass-rails (5.0.0)\n  * uglifier (1.3.0)\n"
+          "Gems included by the bundle:\n  * rails (4.2.6)\n"
         )
+        #"Gems included by the bundle:\n  * rails (4.2.6)\n  * sass-rails (5.0.0)\n  * uglifier (1.3.0)\n"
+
+        allow(Gems).to receive(:info).with('rails').and_return(
+          {"name" => "rails"}
+        )
+        allow(Feedjira::Feed).to receive(:fetch_and_parse).with(rss_path).and_return(
+          freedjira_parsed
+        )
+        #
       end
       after do
         FileUtils.rm_rf working_directory.join(@project1.name)
       end
       context 'Pluginテーブルに同じ名前のgemが保存されていない場合' do
         it 'pluginが作成されること' do
-          expect{ @project1.create_plugins_and_versions }.to change{ Plugin.count }.by(3)
+          expect{ @project1.create_plugins_and_versions }.to change{ Plugin.count }.by(1)
+        end
+        it 'entryが作成されること' do
+          expect{ @project1.create_plugins_and_versions }.to change{ Entry.count }.by(3)
         end
         it 'project_versionが作成されること' do
-          expect{ @project1.create_plugins_and_versions }.to change{ ProjectVersion.count }.by(3)
+          expect{ @project1.create_plugins_and_versions }.to change{ ProjectVersion.count }.by(1)
         end
       end
       context 'Pluginに同じ名前のgemが保存されている場合' do
         before do
           create(:plugin, name: 'rails')
-          create(:plugin, name: 'sass-rails')
-          create(:plugin, name: 'uglifier')
+          # create(:plugin, name: 'sass-rails')
+          # create(:plugin, name: 'uglifier')
         end
         it 'pluginが作成されないこと' do
           expect{ @project1.create_plugins_and_versions }.to change{ Plugin.count }.by(0)
         end
         it 'project_versionが作成されること' do
-          expect{ @project1.create_plugins_and_versions }.to change{ ProjectVersion.count }.by(3)
+          expect{ @project1.create_plugins_and_versions }.to change{ ProjectVersion.count }.by(1)
         end
       end
     end
@@ -274,6 +338,8 @@ EOS
 
     describe '#has_security_alert?' do
     end
+
+    it_behaves_like 'display_version'
 
   end
 

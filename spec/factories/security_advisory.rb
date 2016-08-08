@@ -1,14 +1,14 @@
 FactoryGirl.define do
   factory :security_advisory do
     framework             nil
-    cve                   '2013-4389'
+    cve                   'CVE-2015-8806 '
     osvdb                 98629
-    description           "Action Mailer Gem for Ruby contains a format string flaw in the Log Subscriber component."
-    cvss_v2               "4.3"
+    description           "Nokogiri is affected by series of vulnerabilities in libxml2 and libxslt"
+    cvss_v2               nil
     cvss_v3               nil
-    date                  Date.new(2013, 8, 16)
-    unaffected_versions   "~> 2.3.2"
-    patched_versions      ">= 3.2.15"
+    date                  Date.new(2016, 6, 7)
+    unaffected_versions   "< 1.6.0"
+    patched_versions      ">= 1.6.8"
     path                  Rails.root.join("/data/ruby-advisory-db/gems/actionmailer/OSVDB-98629.yml").to_s
     plugin                { create(:plugin) }
   end

@@ -5,6 +5,14 @@
       <h1>
         <%= @plugin.name %>
       </h1>
+
+      <div class="ui large breadcrumb">
+        <%= link_to @plugin.name, plugin_path(@plugin), class: "section" %>
+        <i class="right chevron icon divider"></i>
+        <div class="active section">versions</div>
+      </div>
+      <br>
+
     </div>
   </div>
 

@@ -29,6 +29,8 @@ class Entry < ActiveRecord::Base
   has_one    :project_version
   has_many   :dependencies, dependent: :destroy
 
+  #after_destroy :create_destroyed_table_log
+
   # rails リリースタイトル一覧
   scope :rails_entries, -> {
 
@@ -126,6 +128,11 @@ class Entry < ActiveRecord::Base
   # 許可する関連の配列をオーバーライドする
   # def self.ransackable_associations(auth_object = nil)
   #   reflect_on_all_associations.map { |a| a.name.to_s }
+  # end
+
+  # 削除ログ
+  # def create_destroyed_table_log
+  #   CronLog.success_table(self.class.to_s.underscore, title, :delete)
   # end
 
 end

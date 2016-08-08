@@ -31,6 +31,8 @@
 #
 
 class ProjectVersion < ActiveRecord::Base
+  include DisplayVersion
+
   belongs_to :project
   belongs_to :plugin
   belongs_to :entry
@@ -91,9 +93,7 @@ class ProjectVersion < ActiveRecord::Base
     # installedを細かいバージョンカラムにセットする
     def set_versions
       return unless installed
-      version = installed.scan(/(\d+)\.(\d+)\.(\S+)/).first # 0.0.0
-      version = installed.scan(/(\d+)\.(\d+)/).first unless version # 0.0
-      version = installed.scan(/(\d+)/).first unless version # 0
+      version = installed.split('.')
       self.major_version = version[0]
       self.minor_version = version[1]
       self.patch_version = version[2]
@@ -146,21 +146,6 @@ class ProjectVersion < ActiveRecord::Base
           return gem_info['version']
         end
       end
-    end
-
-    # TODO: 共通化する
-    def split_version(string)
-      # 0.0.0
-      version = string.scan(/(\d+)\.(\d+)\.(\S+)/).first
-      # 0.0
-      unless version
-        version = string.scan(/(\d+)\.(\d+)/).first
-      end
-      # 0
-      unless version
-        version = string.scan(/(\d+)/).first
-      end
-      return version
     end
 
   # バリデーション

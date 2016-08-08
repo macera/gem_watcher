@@ -24,4 +24,19 @@
 class Dependency < ApplicationRecord
   belongs_to :entry
   belongs_to :plugin
+
+  after_create  :create_created_table_log
+  #after_destroy :create_destroyed_table_log
+
+  # 依存関係作成ログ
+  def create_created_table_log
+    plugin_name = plugin ? plugin.name : provisional_name
+    CronLog.success_table(self.class.to_s.underscore, "#{entry.title}のDependencies(#{plugin_name})", :create)
+  end
+
+  # 削除ログ
+  # def create_destroyed_table_log
+  #   CronLog.success_table(self.class.to_s.underscore, "#{entry.title}のDependencies(#{plugin.name})", :delete)
+  # end
+
 end

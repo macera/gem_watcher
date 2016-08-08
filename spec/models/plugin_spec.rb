@@ -9,6 +9,47 @@ RSpec.describe Plugin, type: :model do
 
   describe 'クラスメソッド' do
     describe '.create_runtime_dependencies' do
+      before do
+        @plugin = create(:plugin, name: 'kaminari')
+        @entry1 = create(:entry, plugin: @plugin,
+                                major_version: 0,
+                                minor_version: 16,
+                                patch_version: '3'
+        )
+        @entry2 = create(:entry, plugin: @plugin,
+                                major_version: 0,
+                                minor_version: 16,
+                                patch_version: '2'
+        )
+        allow(Gems).to receive(:dependencies).with(['kaminari']).and_return(
+          [
+            {:name=>"kaminari", :number=>"0.16.3", :platform=>"ruby", :dependencies=>[["actionpack", ">= 3.0.0"], ["activesupport", ">= 3.0.0"]]},
+            {:name=>"kaminari", :number=>"0.16.2", :platform=>"ruby", :dependencies=>[["actionpack", ">= 3.0.0"], ["activesupport", ">= 3.0.0"]]}
+          ]
+        )
+        #
+        allow(Gems).to receive(:dependencies).with(['activesupport']).and_return(
+          [
+            {:name=>"activesupport", :number=>"4.2.7", :platform=>"ruby", :dependencies=>[]},
+            {:name=>"activesupport", :number=>"4.2.6", :platform=>"ruby", :dependencies=>[]}
+          ]
+        )
+        allow(Gems).to receive(:dependencies).with(['actionpack']).and_return(
+          [
+            {:name=>"activesupport", :number=>"4.2.7", :platform=>"ruby", :dependencies=>[]},
+            {:name=>"activesupport", :number=>"4.2.6", :platform=>"ruby", :dependencies=>[]}
+          ]
+        )
+        create(:plugin, name: 'activesupport')
+        create(:plugin, name: 'actionpack')
+      end
+      it 'gemの依存gemが登録されること' do
+        expect{ Plugin.create_runtime_dependencies }.to change{ Dependency.count }.by(4)
+      end
+
+      context '依存先が登録されていないgemの場合(現在では使われなくなった)' do
+      end
+
     end
   end
 
