@@ -7,9 +7,11 @@ Rails.application.routes.draw do
   resources :projects, only: [:index, :show, :edit, :update]
 
   resources :plugins, only: [:show] do
-    resources :versions, only: [:show]
+    resources :versions, only: [:index, :show]
   end
 
   resources :cron_logs, only: [:index]
+
+  resources :abouts, only: [:index]
 
 end

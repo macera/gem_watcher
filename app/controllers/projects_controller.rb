@@ -23,6 +23,7 @@ class ProjectsController < ApplicationController
 
   # プロジェクト更新
   def update
+    # TODO: entryに紐づけないといけない!!
     if @project.update_attributes(project_params_for_update)
       redirect_to @project, notice: '正しく更新されました。'
     else

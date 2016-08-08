@@ -1,0 +1,44 @@
+<div class="ui grid">
+
+  <div class="column">
+    <div class="ui message">
+      <h1>
+        <%= @plugin.name %>
+      </h1>
+    </div>
+  </div>
+
+</div><!-- grid -->
+
+<div class="ui grid">
+
+  <%= render partial: 'shared/latest_versions',
+    locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+
+  <div class="ten wide column">
+    <div class="ui segment">
+      <h2><i class="diamond icon"></i>ALL Versions</h2>
+      <table class="ui very basic table">
+        <thead>
+          <tr>
+            <th>version</th>
+            <th>リリース日</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @entries.each do |entry| %>
+            <tr>
+              <td>
+                <%= link_to(entry.version,
+                            plugin_version_path(plugin_id: @plugin.id, id: entry.id)
+                  ) %>
+              </td>
+              <td><%= l entry.published %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

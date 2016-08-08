@@ -71,7 +71,7 @@ class ProjectVersion < ActiveRecord::Base
     entry.dependencies.each do |dependency|
       if dependency.plugin
         project_version = project.project_versions.joins(:plugin).where('plugins.name' => dependency.plugin.name).first
-        result = project_version.security_check
+        result = project_version.security_check if project_version
         alert_versions << result.first if result.present?
       end
     end
@@ -85,8 +85,6 @@ class ProjectVersion < ActiveRecord::Base
     def set_plugin_name
       if plugin
         self.plugin_name = plugin_name || plugin.name
-        # 画面で登録したものはGemfileと見なす
-        self.described = true if described.nil?
       end
     end
 
@@ -111,6 +109,24 @@ class ProjectVersion < ActiveRecord::Base
         new_plugin.get_gem_uri
         new_plugin.save! if new_plugin.changed?
         self.plugin = new_plugin
+
+        # gemの依存gemも登録しないといけない！！
+
+        unless entry
+          if installed
+            Entry.update_all(new_plugin)
+            version = split_version(installed)
+            entry = plugin.entries.where(major_version: version[0],
+                                         minor_version: version[1],
+                                         patch_version: version[2]
+            ).first
+            self.entry = entry
+          end
+        end
+
+        # TODO: 依存情報かどうか選択できるようにする
+        # 画面で登録したものはGemfileと見なす
+        self.described = true if described.nil?
       end
     end
 
@@ -130,6 +146,21 @@ class ProjectVersion < ActiveRecord::Base
           return gem_info['version']
         end
       end
+    end
+
+    # TODO: 共通化する
+    def split_version(string)
+      # 0.0.0
+      version = string.scan(/(\d+)\.(\d+)\.(\S+)/).first
+      # 0.0
+      unless version
+        version = string.scan(/(\d+)\.(\d+)/).first
+      end
+      # 0
+      unless version
+        version = string.scan(/(\d+)/).first
+      end
+      return version
     end
 
   # バリデーション
