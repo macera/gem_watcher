@@ -64,7 +64,24 @@ RSpec.describe SecurityAdvisory, type: :model do
     end
 
     describe '.check_gem' do
-
+      let(:id1)   { 'CVE-2016-2098' }
+      let(:path1) { File.join(root,'gems',gem,"#{id1}.yml") }
+      let(:id2)   { 'OSVDB-84243' }
+      let(:path2) { File.join(root,'gems',gem,"#{id2}.yml") }
+      before do
+        @plugin = create(:plugin, name: 'actionpack')
+        @advisory1 = security_advisory_create(path1, @plugin)
+        @advisory2 = security_advisory_create(path2, @plugin)
+      end
+      it 'そのバージョンの脆弱性情報のみ返却すること(一部の脆弱性のみヒット)' do
+        expect(SecurityAdvisory.check_gem(@plugin, '3.1.9')).to eq [@advisory1]
+      end
+      it 'そのバージョンの脆弱性情報のみ返却すること(全ての脆弱性のみヒット)' do
+        expect(SecurityAdvisory.check_gem(@plugin, '3.0.0')).to eq [@advisory1, @advisory2]
+      end
+      it '空配列を返却すること(脆弱性がない)' do
+        expect(SecurityAdvisory.check_gem(@plugin, '3.2.22.2')).to eq []
+      end
     end
 
   end
