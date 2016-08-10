@@ -1,3 +1,6 @@
+# TODO: 仕様変更によるデプロイ時に削除・作成順を見直す
+# TODO: Gemfileのないプロジェクトをseedとかで一気に登録するようにしたい
+
 # GitLabからprojectを取得し、projectsテーブルを作成する
 Dependency.destroy_all
 p '*0'

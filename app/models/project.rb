@@ -176,11 +176,9 @@ class Project < ActiveRecord::Base
     end
   end
 
-  # git pull コマンド
-  # リポジトリ更新(Gemfileを更新するため)
+  # Gemfile、Gemfile.lockを更新する(git pullは使わない)
   def update_gemfile
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-      # TODO: gitを使わなくて済むように修正する
       if has_gemfile_in_remote?
         gemfile = File.open('Gemfile', "w+") do |file|
           file.print(newest_gemfile)
@@ -197,8 +195,8 @@ class Project < ActiveRecord::Base
     end
     self.update(
       gemfile_content: newest_gemfile,
-      commit_id: Gitlab.commits(gitlab_id).first.id,
-      gitlab_updated_at: Gitlab.project(gitlab_id).last_activity_at
+      commit_id:       gitlab_commit_id,
+      gitlab_updated_at: get_gitlab_updated_at
     )
   end
 
@@ -453,6 +451,11 @@ class Project < ActiveRecord::Base
   # ルートディレクトリ・ファイル一覧を返す API
   def root_dirs
     Gitlab.tree(gitlab_id)
+  end
+
+  # gitlabのlast_activity_atを取得する
+  def get_gitlab_updated_at
+    Gitlab.project(gitlab_id).last_activity_at
   end
 
   # コマンドを実行する

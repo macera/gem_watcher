@@ -55,7 +55,7 @@ class ProjectsController < ApplicationController
 
   def project_params_for_update
     params.require(:project).permit(
-      project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :_destroy]
+      project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :described, :_destroy]
     )
   end
 

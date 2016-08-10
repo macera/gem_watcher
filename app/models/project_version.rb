@@ -124,9 +124,6 @@ class ProjectVersion < ActiveRecord::Base
           end
         end
 
-        # TODO: 依存情報かどうか選択できるようにする
-        # 画面で登録したものはGemfileと見なす
-        self.described = true if described.nil?
       end
     end
 

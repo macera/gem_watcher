@@ -56,28 +56,42 @@ class Plugin < ActiveRecord::Base
   def self.create_runtime_dependencies
     self.all.each do |plugin|
       # gem名を取得
-      result = Gems.dependencies([plugin.name])
-      next unless result
-      plugin.entries.each do |entry|
-        next if entry.dependencies.present?
-        hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
-        # もしdependenciesが空であればリターン
-        next unless hash
-        next if hash[:dependencies].blank?
-        hash[:dependencies].each do |target|
-          plugin = find_by(name: target[0])
-          if plugin
-            entry.dependencies.find_or_create_by!(requirements: target[1], plugin: plugin)
-          else
-            # 登録されていないgemの場合
-            entry.dependencies.find_or_create_by!(
-                                  requirements: target[1],
-                                  provisional_name: target[0])
-          end
-        end
-      end
+      plugin.create_runtime_dependency
     end
     return true
+  end
+
+  def create_runtime_dependency
+    result = Gems.dependencies([name])
+    return unless result
+    entries.each do |entry|
+      #return if entry.dependencies.present?
+      hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
+      # もしdependenciesが空であればリターン
+      return unless hash
+      return if hash[:dependencies].blank?
+      hash[:dependencies].each do |target|
+        plugin = Plugin.find_by(name: target[0])
+        if plugin
+          # すでに依存情報はあるか
+          dependency = entry.dependencies.where(requirements: target[1], provisional_name: target[0]).first
+          if dependency
+            dependency.provisional_name = nil
+            dependency.plugin = plugin
+          else
+            dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                plugin: plugin).first_or_initialize
+          end
+        else
+          # 登録されていないgemの場合
+          dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                provisional_name: target[0]).first_or_initialize
+        end
+        dependency.save! if dependency.changed?
+      end
+    end
   end
 
   # Gemの情報を代入する
