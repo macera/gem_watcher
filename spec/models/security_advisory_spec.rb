@@ -6,7 +6,8 @@ RSpec.describe SecurityAdvisory, type: :model do
   let(:root) { Rails.root.join('spec', 'fixtures') }
   let(:gem)  { 'actionpack' }
   let(:id)   { 'OSVDB-84243' }
-  let(:path) { File.join(root,'gems',gem,"#{id}.yml") }
+  let(:path) { File.join(root,'gems',gem, "#{id}.yml") }
+  let(:source_path) { Rails.root.join('data', Rails.env, 'ruby-advisory-db', 'gems', gem) }
   let(:an_unaffected_version) do
     advisory = security_advisory_load(path)
     versions = Array(advisory.unaffected_versions.split(':')).map do |version|
@@ -51,7 +52,14 @@ RSpec.describe SecurityAdvisory, type: :model do
     end
 
     describe '.all_update' do
-
+      before do
+        FileUtils.mkdir_p source_path
+        FileUtils.cp_r path, source_path
+        create(:plugin, name: 'actionpack')
+      end
+      it 'SecurityAdvisoryが1件追加されること' do
+        expect{ SecurityAdvisory.all_update }.to change{ SecurityAdvisory.count }.by(1)
+      end
     end
 
     describe '.load' do

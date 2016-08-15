@@ -30,6 +30,39 @@ RSpec.describe Entry, type: :model do
 
   describe 'クラスメソッド' do
     describe '.update_all' do
+      let(:rss) { File.read("spec/fixtures/rails_versions_atom_little.xml") } # 3件のentry
+      let(:freedjira_parsed) { Feedjira::Parser::Atom.parse(rss) }
+      let(:rss_path) { URI.join("#{Settings.feeds.rubygem}rails/versions.atom").to_s }
+      before do
+        @plugin = create(:plugin, name: 'rails')
+        allow(Gems).to receive(:info).with('rails').and_return(
+          {"name" => "rails"}
+        )
+        allow(Feedjira::Feed).to receive(:fetch_and_parse).with(rss_path).and_return(
+          freedjira_parsed
+        )
+      end
+      it 'entryが作成されること' do
+        expect{ Entry.update_all(@plugin) }.to change{ Entry.count }.by(3)
+      end
+    end
+
+    describe '.version_from_feed' do
+      context 'マイナーとパッチバージョン両方がある場合' do
+        it 'versionを正しく返却すること' do
+          expect(Entry.version_from_feed('kaminari (0.17.0)')).to eq ['0', '17', '0']
+        end
+      end
+      context 'マイナーバージョンがある場合' do
+        it 'versionを正しく返却すること' do
+          expect(Entry.version_from_feed('kaminari (0.17)')).to eq ['0', '17']
+        end
+      end
+      context 'マイナーバージョン以降がない場合' do
+        it 'versionを正しく返却すること' do
+          expect(Entry.version_from_feed('kaminari (1)')).to eq  ['1']
+        end
+      end
     end
   end
 
@@ -54,6 +87,7 @@ RSpec.describe Entry, type: :model do
         end
       end
     end
+
   end
 
 end

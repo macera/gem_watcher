@@ -27,6 +27,38 @@ describe ProjectsController do
       get :show, params: { id: project.id }
       expect(response).to render_template :show
     end
+
+    describe 'gem検索' do
+      before do
+        @project = create(:project)
+        @plugin1 = create(:plugin)
+        entry1 = create(:entry, plugin: @plugin1)
+        @version1 = create(:version, plugin: @plugin1, entry: entry1, project: @project, newest: '4.2.0')
+        @plugin2 = create(:plugin)
+        entry2 = create(:entry, plugin: @plugin2)
+        @version2 = create(:version, plugin: @plugin2, entry: entry2, project: @project, newest: nil)
+      end
+      context 'nameでgem検索する場合' do
+        it "指定のバージョンが返却されること" do
+          get :show, params: { id: @project.id, plugin_form: { name: @plugin1.name } }
+          expect(assigns(:plugins)).to eq [@version1]
+        end
+      end
+      context 'updatedでgem検索する場合' do
+        it "更新可能なバージョンが返却されること" do
+          get :show, params: { id: @project.id, plugin_form: { updated: '1' } }
+          expect(assigns(:plugins)).to eq [@version1]
+        end
+        it "更新済みバージョンが返却されること" do
+          get :show, params: { id: @project.id, plugin_form: { updated: '2' } }
+          expect(assigns(:plugins)).to eq [@version2]
+        end
+        it "全てのバージョンが返却されること" do
+          get :show, params: { id: @project.id, plugin_form: { updated: '0' } }
+          expect(assigns(:plugins)).to eq [@version1, @version2]
+        end
+      end
+    end
   end
 
   context 'gemfileが存在しない場合' do

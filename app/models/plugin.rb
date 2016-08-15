@@ -73,18 +73,24 @@ class Plugin < ActiveRecord::Base
       hash[:dependencies].each do |target|
         plugin = Plugin.find_by(name: target[0])
         if plugin
-          # すでに依存情報はあるか
-          dependency = entry.dependencies.where(requirements: target[1], provisional_name: target[0]).first
+          # 存在しなかったpluginが後から登録された場合
+          dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                provisional_name: plugin.name).first
           if dependency
             dependency.provisional_name = nil
             dependency.plugin = plugin
           else
             dependency = entry.dependencies.where(
                                 requirements: target[1],
+                                provisional_name: nil,
                                 plugin: plugin).first_or_initialize
           end
         else
           # 登録されていないgemの場合
+
+          # 存在したpluginが後から削除された場合は、dependencyも自動的に削除されるが、
+          # 再びこれを実行すると登録される。
           dependency = entry.dependencies.where(
                                 requirements: target[1],
                                 provisional_name: target[0]).first_or_initialize
@@ -118,16 +124,16 @@ class Plugin < ActiveRecord::Base
 
 # コールバック
 
-  def destroy_relatitons
-    p 'gemの関連するもの削除する'
-    if dependency.present?
-      dependency.destroy
-    end
-    if project_versions.present?
-      project_versions.destroy_all
-    end
-    return true
-  end
+  # def destroy_relatitons
+  #   #gemの関連するもの削除する
+  #   if dependency.present?
+  #     dependency.destroy
+  #   end
+  #   if project_versions.present?
+  #     project_versions.destroy_all
+  #   end
+  #   return true
+  # end
 
   # 新規gem作成ログ
   def create_created_table_log

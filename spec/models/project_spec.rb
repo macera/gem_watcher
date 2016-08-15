@@ -139,6 +139,21 @@ RSpec.describe Project, type: :model do
     end
 
     describe '#generate_gemfile_lock' do
+      before do
+        @project = create(:project)
+        FileUtils.mkdir_p working_directory.join(@project.name)
+        Dir.chdir(working_directory.join(@project.name).to_s) do
+          File.open('Gemfile', "w+") do |file|
+            file.print(@project.gemfile_content)
+          end
+        end
+        allow(@project).to receive(:run).with("bundle install --path vendor/bundle --without development test").and_return(
+          "Using rails 5.0.0\nUsing sass-rails 5.0.6\nBundle complete! 33 Gemfile dependencies, 77 gems now installed.\nGems in the groups development and test were not installed.\nBundled gems are installed into ./vendor/bundle.\n"
+        )
+      end
+      it 'nilを返却すること' do
+        expect(@project.generate_gemfile_lock).to be nil
+      end
 
     end
 
