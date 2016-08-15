@@ -38,29 +38,6 @@
       </div>
     </div>
 
-    <% if false %>
-    <div class="ui segment">
-      <h2><i class="github square icon"></i>CHANGELOG(master) CVE情報</h2>
-      <%= 'CVE情報は1件もありません。' if @cve_numbers.blank? %>
-      <div class="ui relaxed list">
-        <% (@cve_numbers || []).each do |num| %>
-          <div class="item">
-            <i class="large warning circle middle aligned icon"></i>
-            <div class="content">
-              <div class="header">
-                <%= num %>
-                <span style="padding-left:10em;">
-                  <%= link_to "CVE", "#{Settings.links.cve}#{num}", target: '_blank', class: 'ui button small' %>
-                  <%= link_to "JVN", "#{Settings.links.jvn}#{num}", target: '_blank', class: 'ui button small' %>
-                </span>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-    <% end %>
-
   </div>
 
 
