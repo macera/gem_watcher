@@ -62,10 +62,10 @@ class Project < ActiveRecord::Base
           project.update_gemfile               # git pull
           project.generate_gemfile_lock        # bundle install
           project.update_plugins_and_versions  # bundle list
-          project.update_versions              # bundle outdated
-          # project.update_dependencies          # dependenciesを登録する
         end
-        #project.update_dependencies          # dependenciesを登録する
+        if project.has_gemfile_in_remote?
+          project.update_versions                 # bundle outdated
+        end
       rescue Gitlab::Error::Forbidden => e
         CronLog.error_create(
           table_name: self.class.to_s.underscore,
