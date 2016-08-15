@@ -81,16 +81,7 @@ class Entry < ActiveRecord::Base
     content = Feedjira::Feed.fetch_and_parse(path.to_s)
 
     content.entries.each do |entry|
-      # 0.0.0
-      version = entry.title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
-      # 0.0
-      unless version
-        version = entry.title.scan(/\S+\s\((\d+)\.(\d+)\)/).first
-      end
-      # 0
-      unless version
-        version = entry.title.scan(/\S+\s\((\d+)\)/).first
-      end
+      version = version_from_feed(entry.title)
 
       # beta版、ruby以外のplatform等は除く 例: 2.0rc0 5.0.0.rc1
       next unless version
@@ -112,6 +103,21 @@ class Entry < ActiveRecord::Base
       table_name: 'entry',
       content: "Gem名:#{plugin.name}, パス:#{path.to_s}, 詳細:#{e}"
     )
+  end
+
+  # titleからversionを取り出す(配列)
+  def self.version_from_feed(title)
+    # 0.0.0
+    version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
+    # 0.0
+    unless version
+      version = title.scan(/\S+\s\((\d+)\.(\d+)\)/).first
+    end
+    # 0
+    unless version
+      version = title.scan(/\S+\s\((\d+)\)/).first
+    end
+    version
   end
 
   # versionを返す
