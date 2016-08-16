@@ -10,7 +10,6 @@ RSpec.describe CronLogsHelper do
             ['プロジェクト', 'project'],
             ['Gem', 'plugin'],
             ['リリースフィード', 'entry'],
-            ['Dependency', 'dependency'],
             ['セキュリティフィード', 'security_entry'],
             ['脆弱性情報', 'security_advisory'],
           ]
