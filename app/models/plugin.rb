@@ -68,12 +68,8 @@ class Plugin < ActiveRecord::Base
       #return if entry.dependencies.present?
       hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
       # もしdependenciesが空であればリターン
-      if self.name == 'rails'
-        p '*******************************************************************'
-        p entry.title
-      end
-      return unless hash
-      return if hash[:dependencies].blank?
+      next unless hash
+      next if hash[:dependencies].blank?
       hash[:dependencies].each do |target|
         plugin = Plugin.find_by(name: target[0])
         if plugin
