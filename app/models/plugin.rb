@@ -56,7 +56,8 @@ class Plugin < ActiveRecord::Base
   def self.create_runtime_dependencies
     self.all.each do |plugin|
       # gem名を取得
-      plugin.create_runtime_dependency
+      result = plugin.create_runtime_dependency
+      next unless result
     end
     return true
   end
@@ -97,6 +98,7 @@ class Plugin < ActiveRecord::Base
         end
         dependency.save! if dependency.changed?
       end
+      return true
     end
   end
 
