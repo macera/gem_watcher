@@ -23,7 +23,10 @@
           <div class="item">
             <i class="large warning circle middle aligned icon"></i>
             <div class="content">
-              <span class="header"><%= link_to topic.title, topic.url, target: '_blank' %></span>
+              <span class="header">
+                <%= new_label(topic.published) %>
+                <%= link_to topic.title, topic.url, target: '_blank' %>
+              </span>
               <div class="description">
                 <%= l topic.published %>
                 <% cve = topic.title.scan(/CVE-\d+-\d+/).flatten[0] %>
