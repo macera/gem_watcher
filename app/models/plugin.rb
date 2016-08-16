@@ -19,7 +19,7 @@ class Plugin < ActiveRecord::Base
   has_many :security_entries, dependent: :destroy
   has_many :security_advisories, dependent: :destroy
 
-  has_one :dependency, dependent: :destroy
+  has_many :dependencies, dependent: :nullify
 
   validates :name, presence: true
   # validates :name, length: { maximum: 50 }, allow_blank: true
@@ -110,6 +110,15 @@ class Plugin < ActiveRecord::Base
       # rubygemであるフラグを付ける
     else
       # rubygemに登録されていないplugin処理
+    end
+  end
+
+  def update_dependencies
+    if dependencies.present?
+      dependencies.each do |dependency|
+        dependency.provisional_name = self.name
+        dependency.save
+      end
     end
   end
 

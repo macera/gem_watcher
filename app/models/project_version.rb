@@ -127,10 +127,11 @@ class ProjectVersion < ActiveRecord::Base
       end
     end
 
-    # versionが1件もないpluginの場合削する
+    # versionが1件もないpluginの場合削除する
     def destroy_with_plugin_name
       target_gem = plugin
       if target_gem.project_versions.blank?
+        target_gem.update_dependencies # 依存情報を更新
         target_gem.destroy
       end
     end
