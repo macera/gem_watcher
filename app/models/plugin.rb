@@ -56,8 +56,7 @@ class Plugin < ActiveRecord::Base
   def self.create_runtime_dependencies
     self.all.each do |plugin|
       # gem名を取得
-      result = plugin.create_runtime_dependency
-      next unless result
+      plugin.create_runtime_dependency
     end
     return true
   end
@@ -69,6 +68,10 @@ class Plugin < ActiveRecord::Base
       #return if entry.dependencies.present?
       hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
       # もしdependenciesが空であればリターン
+      if self.name == 'rails'
+        p '*******************************************************************'
+        p entry.title
+      end
       return unless hash
       return if hash[:dependencies].blank?
       hash[:dependencies].each do |target|
@@ -98,7 +101,6 @@ class Plugin < ActiveRecord::Base
         end
         dependency.save! if dependency.changed?
       end
-      return true
     end
   end
 
