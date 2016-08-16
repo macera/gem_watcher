@@ -21,6 +21,8 @@
 require "open3"
 
 class Project < ActiveRecord::Base
+  include DisplayVersion
+
   has_many :plugins, through: :project_versions
   has_many :project_versions, dependent: :destroy
 
@@ -60,7 +62,9 @@ class Project < ActiveRecord::Base
           project.update_gemfile               # git pull
           project.generate_gemfile_lock        # bundle install
           project.update_plugins_and_versions  # bundle list
-          project.update_versions              # bundle outdated
+        end
+        if project.has_gemfile_in_remote?
+          project.update_versions                 # bundle outdated
         end
       rescue Gitlab::Error::Forbidden => e
         CronLog.error_create(
@@ -172,11 +176,9 @@ class Project < ActiveRecord::Base
     end
   end
 
-  # git pull コマンド
-  # リポジトリ更新(Gemfileを更新するため)
+  # Gemfile、Gemfile.lockを更新する(git pullは使わない)
   def update_gemfile
     Dir.chdir("#{Rails.root}/#{Settings.path.working_directory}/#{name}") do
-      # TODO: gitを使わなくて済むように修正する
       if has_gemfile_in_remote?
         gemfile = File.open('Gemfile', "w+") do |file|
           file.print(newest_gemfile)
@@ -193,8 +195,8 @@ class Project < ActiveRecord::Base
     end
     self.update(
       gemfile_content: newest_gemfile,
-      commit_id: Gitlab.commits(gitlab_id).first.id,
-      gitlab_updated_at: Gitlab.project(gitlab_id).last_activity_at
+      commit_id:       gitlab_commit_id,
+      gitlab_updated_at: get_gitlab_updated_at
     )
   end
 
@@ -232,8 +234,6 @@ class Project < ActiveRecord::Base
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
-            # Gemfile情報を取得する(依存先gemを除く)
-            next unless gemfile_gems.include?(value[0])
 
             new_plugin = Plugin.find_or_initialize_by(name: value[0])
             # gem情報更新
@@ -241,10 +241,18 @@ class Project < ActiveRecord::Base
             # p new_plugin.name
             new_plugin.save! if new_plugin.changed?
 
-            # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
-            #   p.get_gem_uri
-            # end
-            project_versions.create!(installed: value[1], plugin: new_plugin)
+            Entry.update_all(new_plugin)
+            version = split_version(value[1])
+            entry = new_plugin.entries.where(major_version: version[0],
+                                             minor_version: version[1],
+                                             patch_version: version[2]
+            ).first
+
+            project_versions.create!(installed: value[1],
+                                     plugin:    new_plugin,
+                                     entry:     entry,
+                                     described: gemfile_gems.include?(value[0])
+            )
           end
         end
       end
@@ -269,21 +277,35 @@ class Project < ActiveRecord::Base
         result.each_line do |line|
           if line.start_with?('  * ')
             value = line.scan(/\s\s\*\s(\S+)\s\((.+)\)/).flatten
-            # Gemfile情報を取得する(依存先gemを除く)
-            next unless gemfile_gems.include?(value[0])
+
             version = project_versions.joins(:plugin).where('plugins.name' => value[0]).first
             if version
               # installedのみ更新、他は初期化(update_versionsで取得し直す)
-              version.update(installed: value[1], newest: nil, requested: nil)
+              version.update(installed: value[1],
+                             newest:    nil,
+                             requested: nil,
+                             described: gemfile_gems.include?(value[0])
+              )
             else
               new_plugin = Plugin.find_or_initialize_by(name: value[0])
               # gem情報更新
               new_plugin.get_gem_uri# if valid_plugin_format?
               new_plugin.save! if new_plugin.changed?
-              # new_plugin = Plugin.find_or_create_by!(name: value[0]) do |p|
-              #   p.get_gem_uri
-              # end
-              project_versions.create!(installed: value[1], plugin: new_plugin)
+
+              # TODO: この時、plugin.entriesを作成
+              Entry.update_all(new_plugin)
+              # TODO: value[1]のversionのentryをproject_versionに登録する
+              version = split_version(value[1])
+              entry = new_plugin.entries.where(major_version: version[0],
+                                               minor_version: version[1],
+                                               patch_version: version[2]
+              ).first
+
+              project_versions.create!(installed: value[1],
+                                       plugin:    new_plugin,
+                                       entry:     entry,
+                                       described: gemfile_gems.include?(value[0])
+              )
             end
             names << value[0]
           end
@@ -319,8 +341,7 @@ class Project < ActiveRecord::Base
         result.each_line do |line|
           next unless line.start_with?('  *')
           plugin_name = line.scan(/\s\s\*\s(\S+)\s/).flatten[0]
-          # Gemfile情報を取得する(依存先gemを除く)
-          next unless gemfile_gems.include?(plugin_name)
+
           versions = line.scan(/\((\S+\s.+)\)/).flatten[0].split(', ')
           attr = {}
           versions.each do |v|
@@ -393,6 +414,13 @@ class Project < ActiveRecord::Base
     end
   end
 
+  def has_security_alert?
+    project_versions.each do |version|
+      return true if SecurityAdvisory.check_gem(version.plugin, version.installed).present?
+    end
+    return false
+  end
+
   private
 
   # コールバック
@@ -423,6 +451,11 @@ class Project < ActiveRecord::Base
   # ルートディレクトリ・ファイル一覧を返す API
   def root_dirs
     Gitlab.tree(gitlab_id)
+  end
+
+  # gitlabのlast_activity_atを取得する
+  def get_gitlab_updated_at
+    Gitlab.project(gitlab_id).last_activity_at
   end
 
   # コマンドを実行する

@@ -17,6 +17,9 @@ class Plugin < ActiveRecord::Base
   has_many :projects, through: :project_versions
   has_many :entries, dependent: :destroy
   has_many :security_entries, dependent: :destroy
+  has_many :security_advisories, dependent: :destroy
+
+  has_one :dependency, dependent: :destroy
 
   validates :name, presence: true
   # validates :name, length: { maximum: 50 }, allow_blank: true
@@ -31,17 +34,70 @@ class Plugin < ActiveRecord::Base
   #                             },
   #                             allow_blank: true
 
+  #before_destroy :destroy_relatitons
+
   after_create  :create_created_table_log
   after_update  :create_updated_table_log
   after_destroy :create_destroyed_table_log
 
-  # before_create :get_source_code_uri
+
+  scope :described, -> {
+    joins(:project_versions).merge(ProjectVersion.only_gemfile)
+  }
 
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
     %w(name)
+  end
+
+  # 依存情報を登録する
+  def self.create_runtime_dependencies
+    self.all.each do |plugin|
+      # gem名を取得
+      plugin.create_runtime_dependency
+    end
+    return true
+  end
+
+  def create_runtime_dependency
+    result = Gems.dependencies([name])
+    return unless result
+    entries.each do |entry|
+      #return if entry.dependencies.present?
+      hash = result.find {|h| h[:number] == entry.version && h[:platform] == 'ruby' }
+      # もしdependenciesが空であればリターン
+      return unless hash
+      return if hash[:dependencies].blank?
+      hash[:dependencies].each do |target|
+        plugin = Plugin.find_by(name: target[0])
+        if plugin
+          # 存在しなかったpluginが後から登録された場合
+          dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                provisional_name: plugin.name).first
+          if dependency
+            dependency.provisional_name = nil
+            dependency.plugin = plugin
+          else
+            dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                provisional_name: nil,
+                                plugin: plugin).first_or_initialize
+          end
+        else
+          # 登録されていないgemの場合
+
+          # 存在したpluginが後から削除された場合は、dependencyも自動的に削除されるが、
+          # 再びこれを実行すると登録される。
+          dependency = entry.dependencies.where(
+                                requirements: target[1],
+                                provisional_name: target[0]).first_or_initialize
+        end
+        dependency.save! if dependency.changed?
+      end
+    end
   end
 
   # Gemの情報を代入する
@@ -67,6 +123,17 @@ class Plugin < ActiveRecord::Base
     end
 
 # コールバック
+
+  # def destroy_relatitons
+  #   #gemの関連するもの削除する
+  #   if dependency.present?
+  #     dependency.destroy
+  #   end
+  #   if project_versions.present?
+  #     project_versions.destroy_all
+  #   end
+  #   return true
+  # end
 
   # 新規gem作成ログ
   def create_created_table_log

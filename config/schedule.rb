@@ -18,8 +18,14 @@ every 8.hours do
   # Gemfileが更新されているプロジェクトがあれば、ファイルを更新する
   # bundle outdatedコマンドで更新可能なgem一覧を更新する
   runner "Project.update_projects"
-  # リリースfeed収集
+  # リリースfeed(version情報)収集
   rake "feeds:generate"
+  # versionの依存情報を取得
+  runner "Plugin.create_runtime_dependencies"
+  # セキュリティDB情報更新
+  runner "SecurityAdvisory.source_update"
+  # セキュリティ情報取得
+  runner "SecurityAdvisory.all_update"
   # セキュリティfeed収集
   rake "security_feed:generate"
 end

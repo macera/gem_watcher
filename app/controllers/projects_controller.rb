@@ -17,26 +17,13 @@ class ProjectsController < ApplicationController
     @plugins = @form.search_by_project(@project)
   end
 
-  # def new
-  #   @project = Project.new
-  #   @project.project_versions.build
-  # end
-
-  # def create
-  #   @project = Project.new(project_params)
-  #   if @project.save
-  #     redirect_to @project, notice: '正しく登録されました。'
-  #   else
-  #     render action: :new
-  #   end
-  # end
-
   # プロジェクト編集画面
   def edit
   end
 
   # プロジェクト更新
   def update
+    # TODO: entryに紐づけないといけない!!
     if @project.update_attributes(project_params_for_update)
       redirect_to @project, notice: '正しく更新されました。'
     else
@@ -58,12 +45,6 @@ class ProjectsController < ApplicationController
     end
   end
 
-  # def project_params
-  #   params.require(:project).permit(
-  #     :name,
-  #     project_versions_attributes: [ :project_id, :installed, :requested, :plugin_name, :_destroy]
-  #   )
-  # end
   def form_params
     if params[:plugin_form]
       params[:plugin_form].permit(:name, :updated)
@@ -74,7 +55,7 @@ class ProjectsController < ApplicationController
 
   def project_params_for_update
     params.require(:project).permit(
-      project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :_destroy]
+      project_versions_attributes: [ :id, :project_id, :installed, :requested, :plugin_name, :described, :_destroy]
     )
   end
 

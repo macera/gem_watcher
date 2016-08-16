@@ -7,28 +7,35 @@
 #  installed     :string
 #  pre           :string
 #  project_id    :integer
-#  plugin_id     :integer
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  requested     :string
 #  major_version :integer
 #  minor_version :integer
 #  patch_version :string
+#  described     :boolean
+#  plugin_id     :integer
+#  entry_id      :integer
 #
 # Indexes
 #
+#  index_project_versions_on_entry_id    (entry_id)
 #  index_project_versions_on_plugin_id   (plugin_id)
 #  index_project_versions_on_project_id  (project_id)
 #
 # Foreign Keys
 #
 #  fk_rails_05dec520fc  (plugin_id => plugins.id)
+#  fk_rails_4bb073e287  (entry_id => entries.id)
 #  fk_rails_eee5ff31fd  (project_id => projects.id)
 #
 
 class ProjectVersion < ActiveRecord::Base
+  include DisplayVersion
+
   belongs_to :project
   belongs_to :plugin
+  belongs_to :entry
 
   attr_accessor :plugin_name # 画面表示用
 
@@ -53,8 +60,25 @@ class ProjectVersion < ActiveRecord::Base
   after_destroy     :destroy_with_plugin_name
 
   #scope :production, -> { where(group_type: nil) }
-  scope :newest_versions, -> { where.not(newest: nil) }
+  scope :newest_versions,  -> { where.not(newest: nil) }
   scope :updated_versions, -> { where(newest: nil) }
+  scope :only_gemfile,     -> { where(described: true) }
+  scope :no_gemfile,       -> { where(described: false) }
+
+  def security_check
+    if SecurityAdvisory.check_gem(plugin, installed).present?
+      return [self]
+    end
+    alert_versions = []
+    entry.dependencies.each do |dependency|
+      if dependency.plugin
+        project_version = project.project_versions.joins(:plugin).where('plugins.name' => dependency.plugin.name).first
+        result = project_version.security_check if project_version
+        alert_versions << result.first if result.present?
+      end
+    end
+    return alert_versions.uniq
+  end
 
   private
 
@@ -69,9 +93,7 @@ class ProjectVersion < ActiveRecord::Base
     # installedを細かいバージョンカラムにセットする
     def set_versions
       return unless installed
-      version = installed.scan(/(\d+)\.(\d+)\.(\S+)/).first # 0.0.0
-      version = installed.scan(/(\d+)\.(\d+)/).first unless version # 0.0
-      version = installed.scan(/(\d+)/).first unless version # 0
+      version = installed.split('.')
       self.major_version = version[0]
       self.minor_version = version[1]
       self.patch_version = version[2]
@@ -87,6 +109,21 @@ class ProjectVersion < ActiveRecord::Base
         new_plugin.get_gem_uri
         new_plugin.save! if new_plugin.changed?
         self.plugin = new_plugin
+
+        # gemの依存gemも登録しないといけない！！
+
+        unless entry
+          if installed
+            Entry.update_all(new_plugin)
+            version = split_version(installed)
+            entry = plugin.entries.where(major_version: version[0],
+                                         minor_version: version[1],
+                                         patch_version: version[2]
+            ).first
+            self.entry = entry
+          end
+        end
+
       end
     end
 

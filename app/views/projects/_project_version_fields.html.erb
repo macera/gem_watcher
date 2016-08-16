@@ -2,8 +2,12 @@
   <%= f.hidden_field :id %>
   <%# plugin_idを持っているため、plugin_nameは変更はできない %>
   <td><%= f.text_field :plugin_name, placeholder: '', class: '', maxlength: '50', disabled: f.object.persisted? %></td>
-  <td><%= f.text_field :installed, placeholder: '1.2.3', class: '', maxlength: '20' %></td>
+  <td><%= f.text_field :installed, placeholder: '1.2.3', class: '', maxlength: '20', disabled: f.object.persisted? %></td>
   <td><%= f.text_field :requested, placeholder: '= 1.0', class: '', maxlength: '20' %></td>
+  <td class="center aligned">
+    <%= f.hidden_field :described, { value: false } %>
+    <%= f.check_box :described, { class: "ui checkbox" }, true, false %>
+  </td>
   <td>
     <%= link_to_remove_field "削除", f %>
   </td>

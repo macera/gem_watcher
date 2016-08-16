@@ -54,18 +54,29 @@
       <th>最新のバージョン</th>
       <th>現在のバージョン</th>
       <th>固定</th>
-      <th>リリース</th>
+      <th class="four wide column">脆弱性情報(依存先含む)</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     <% @plugins.each do |version| %>
-      <tr>
+      <% target_versions = version.security_check %>
+      <% state = 'negative' if target_versions.present? %>
+      <tr class=<%= state %>>
         <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
         <td><%= version.newest %></td>
-        <td><%= version.installed %></td>
+        <td><%= link_to version.installed, plugin_version_path(plugin_id: version.plugin.id, id: version.entry.id) %></td>
         <td><%= version.requested %></td>
-        <td><%= version.plugin.entries.count %></td>
+        <td>
+          <% target_versions.each do |target| %>
+            <%= link_to plugin_version_path(plugin_id: target.plugin.id, id: target.entry.id) do %>
+              <div class="ui small label red">
+                <%= target.plugin.name %>
+                <%= target.installed %>
+              </div>
+            <% end %>
+          <% end %>
+        </td>
         <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
       </tr>
     <% end %>

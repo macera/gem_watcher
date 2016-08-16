@@ -1,0 +1,8 @@
+ja:
+  activerecord:
+    models:
+      dependency: 'Dependency'
+
+    attributes:
+      dependency:
+        requirements: 必要条件

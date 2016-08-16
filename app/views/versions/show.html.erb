@@ -1,0 +1,105 @@
+<div class="ui grid">
+
+  <div class="column">
+    <div class="ui message">
+      <h1>
+        <%= @plugin.name %>
+        <%= link_to @version.version, plugin_version_path(plugin_id: @plugin.id, id: @version.id) %>
+      </h1>
+
+      <div class="ui large breadcrumb">
+        <%= link_to @plugin.name, plugin_path(@plugin), class: "section" %>
+        <i class="right chevron icon divider"></i>
+        <div class="active section"><%= @version.version %></div>
+      </div>
+      <br>
+
+    </div>
+  </div>
+
+</div><!-- grid -->
+
+<div class="ui grid">
+
+  <%= render partial: 'shared/latest_versions',
+    locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+
+  <div class="ten wide column">
+
+    <div class="ui segment red">
+      <h2><i class="warning sign icon red"></i>脆弱性情報</h2>
+
+      <div class="ui relaxed list">
+        <% @securities.each do |topic| %>
+          <div class="item">
+            <div class="content">
+              <div class="header">
+                <span style='color:red;'><%= topic.title %></span>
+                <span style="padding-left:10em;">
+                  <% if topic.cve %>
+                    <%= link_to "CVE", "#{Settings.links.cve}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+                    <%= link_to "JVN", "#{Settings.links.jvn}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+                  <% else %>
+                    <%= link_to "OSVDB", "#{Settings.links.osvdb}#{topic.osvdb}", target: '_blank', class: 'ui button small' %>
+                    <%= link_to "RubySec", "#{Settings.links.rubysec}#{topic.osvdb_id}", target: '_blank', class: 'ui button small' %>
+                  <% end %>
+                </span>
+              </div>
+
+              <div class="discription">
+
+                <div class="ui list">
+                  <div class="item">
+                    <strong>影響なしバージョン:</strong>
+                    <%= topic.unaffected_versions_list %>
+                  </div>
+                  <div class="item">
+                    <strong>修正バージョン:</strong>
+                    <%= topic.patched_versions_list %>
+                  </div>
+                  <div class="item">
+                    <strong>開示日:</strong>
+                    <%= l topic.date %>
+                  </div>
+                </div>
+                <%= simple_format topic.description %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+    </div>
+
+    <div class="ui segment">
+      <h2><i class="diamond icon"></i>Runtime Dependencies</h2>
+      <% if @dependencies.present? %>
+        <table class="ui very basic table">
+          <thead>
+            <tr>
+              <th>gem名</th>
+              <th>必要条件</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @dependencies.each do |dependency| %>
+              <tr>
+                <td>
+                  <% if dependency.plugin %>
+                    <%= link_to dependency.plugin.name, plugin_path(dependency.plugin.id) %>
+                  <% else %>
+                    <%= dependency.provisional_name %>
+                  <% end %>
+                </td>
+                <td><%= dependency.requirements %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+    </div>
+
+  </div>
+
+
+</div><!-- grid -->

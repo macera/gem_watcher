@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -11,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160624005134) do
+ActiveRecord::Schema.define(version: 20160804043249) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -22,6 +21,17 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.integer  "state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "dependencies", force: :cascade do |t|
+    t.string   "requirements"
+    t.string   "provisional_name"
+    t.integer  "plugin_id"
+    t.integer  "entry_id"
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.index ["entry_id"], name: "index_dependencies_on_entry_id", using: :btree
+    t.index ["plugin_id"], name: "index_dependencies_on_plugin_id", using: :btree
   end
 
   create_table "entries", force: :cascade do |t|
@@ -36,9 +46,8 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.integer  "major_version"
     t.integer  "minor_version"
     t.string   "patch_version"
+    t.index ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
   end
-
-  add_index "entries", ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
 
   create_table "plugins", force: :cascade do |t|
     t.string   "name"
@@ -62,10 +71,12 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.integer  "major_version"
     t.integer  "minor_version"
     t.string   "patch_version"
+    t.boolean  "described"
+    t.integer  "entry_id"
+    t.index ["entry_id"], name: "index_project_versions_on_entry_id", using: :btree
+    t.index ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
+    t.index ["project_id"], name: "index_project_versions_on_project_id", using: :btree
   end
-
-  add_index "project_versions", ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
-  add_index "project_versions", ["project_id"], name: "index_project_versions_on_project_id", using: :btree
 
   create_table "projects", force: :cascade do |t|
     t.string   "name"
@@ -82,6 +93,23 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.datetime "gitlab_updated_at"
   end
 
+  create_table "security_advisories", force: :cascade do |t|
+    t.integer  "plugin_id"
+    t.string   "framework"
+    t.string   "cve"
+    t.integer  "osvdb"
+    t.text     "description"
+    t.string   "cvss_v2"
+    t.string   "cvss_v3"
+    t.date     "date"
+    t.string   "unaffected_versions"
+    t.string   "patched_versions"
+    t.string   "path"
+    t.datetime "created_at",          null: false
+    t.datetime "updated_at",          null: false
+    t.index ["plugin_id"], name: "index_security_advisories_on_plugin_id", using: :btree
+  end
+
   create_table "security_entries", force: :cascade do |t|
     t.string   "title"
     t.datetime "published"
@@ -92,12 +120,15 @@ ActiveRecord::Schema.define(version: 20160624005134) do
     t.integer  "plugin_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["plugin_id"], name: "index_security_entries_on_plugin_id", using: :btree
   end
 
-  add_index "security_entries", ["plugin_id"], name: "index_security_entries_on_plugin_id", using: :btree
-
+  add_foreign_key "dependencies", "entries"
+  add_foreign_key "dependencies", "plugins"
   add_foreign_key "entries", "plugins"
+  add_foreign_key "project_versions", "entries"
   add_foreign_key "project_versions", "plugins"
   add_foreign_key "project_versions", "projects"
+  add_foreign_key "security_advisories", "plugins"
   add_foreign_key "security_entries", "plugins"
 end

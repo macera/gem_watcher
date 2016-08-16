@@ -1,0 +1,17 @@
+ja:
+  activerecord:
+    models:
+      security_advisories: 脆弱性情報
+      security_advisory:   脆弱性情報
+
+    attributes:
+      security_advisory:
+        framework           フレームワーク
+        cve                 CVE
+        osvdb               OSVDB
+        description         詳細
+        cvss_v2             CVSSV2
+        cvss_v3             CVSSV3
+        date                開示日
+        unaffected_versions 影響なしバージョン
+        patched_versions    修正バージョン

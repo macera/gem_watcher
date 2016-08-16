@@ -27,6 +27,7 @@ class SecurityEntry < ActiveRecord::Base
 
   after_create  :create_created_table_log
 
+  private
   # 新規gem作成ログ
   def create_created_table_log
     CronLog.success_table(self.class.to_s.underscore, "#{plugin.name}: #{title}", :create)
