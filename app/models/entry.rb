@@ -131,6 +131,11 @@ class Entry < ActiveRecord::Base
     end
   end
 
+  # 12時間以内のセキュリティ情報の数
+  # def security_count_in_same_day
+  #   plugin.security_entries.where(published: (published.ago(43200))..(published.since(43200)) ).count
+  # end
+
   # 許可する関連の配列をオーバーライドする
   # def self.ransackable_associations(auth_object = nil)
   #   reflect_on_all_associations.map { |a| a.name.to_s }

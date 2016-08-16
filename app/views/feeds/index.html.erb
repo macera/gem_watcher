@@ -23,7 +23,6 @@
                 <tr>
                 <th>リリースタイトル(Version)</th>
                 <th>更新日時</th>
-                <th>脆弱性情報(同日)</th>
                 <th>更新可能なプロジェクト</th>
                 <th></th>
                 </tr>
@@ -36,14 +35,6 @@
                       <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
                     </td>
                     <td><%= l entry.published %></td>
-                    <td class="right aligned">
-                      <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
-                      <% unless sec == 0 %>
-                        <span class="ui red circular label">
-                          <%= sec %>
-                        </span>
-                      <% end %>
-                    </td>
                     <td>
                       <%# 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか? %>
                       <%# 自分より小さいメジャーバージョンはあるか？ %>
@@ -103,7 +94,6 @@
             <tr>
             <th>リリースタイトル(Version)</th>
             <th>更新日時</th>
-            <th>脆弱性情報(同日)</th>
             <th>更新可能なプロジェクト</th>
             <th></th>
             </tr>
@@ -116,15 +106,6 @@
                   <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
                 </td>
                 <td><%= l entry.published %></td>
-                <td class="right aligned">
-                  <%# 12時間以内 %>
-                  <% sec = entry.plugin.security_entries.where(published: (entry.published.ago(43200))..(entry.published.since(43200)) ).count %>
-                  <% unless sec == 0 %>
-                    <span class="ui red circular label">
-                      <%= sec %>
-                    </span>
-                  <% end %>
-                </td>
                 <td>
                   <% entries = entry.plugin.project_versions.where(['installed < ?', entry.version]) %>
                   <% entries.order('installed desc').limit(3).each do |v| %>
