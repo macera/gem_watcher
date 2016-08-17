@@ -5,8 +5,13 @@ class ProjectsController < ApplicationController
 
   # プロジェクト一覧画面
   def index
-    @search = Project.order('gitlab_created_at desc').ransack(params[:q])
-    # TODO: 新しいプロジェクト順に並べ替える
+    # 脆弱性情報のあるproject_ids
+    @security_alert_ids = []
+    Project.all.each do |project|
+      @security_alert_ids << project.id if project.has_security_alert?
+    end
+
+    @search = Project.security_order(@security_alert_ids).ransack(params[:q])
     @projects = @search.result.page(params[:page])
   end
 

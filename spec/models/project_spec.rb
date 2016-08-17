@@ -9,6 +9,37 @@ RSpec.describe Project, type: :model do
   let(:rss_path) { URI.join("#{Settings.feeds.rubygem}rails/versions.atom").to_s }
   #Feedjira::Parser::Atom.parse(File.read("spec/fixtures/rails_versions_atom.xml"))
 
+  describe 'スコープ' do
+    before do
+      # 脆弱性のないプロジェクト
+      @project1 = create(:project, gitlab_created_at: 1.days.ago)
+      @plugin1 = create(:plugin)
+      @entry1 = create(:entry, plugin: @plugin1, major_version: 1, minor_version: 6, patch_version: "0")
+      @project_version1 = create(:version, plugin: @plugin1, entry: @entry1, project: @project1, installed: '1.6.0')
+
+      # 脆弱性のあるプロジェクト
+      @project2 = create(:project, gitlab_created_at: 2.days.ago)
+      @plugin2 = create(:plugin)
+      @entry2 = create(:entry, plugin: @plugin2, major_version: 1, minor_version: 6, patch_version: "0")
+      @project_version2 = create(:version, plugin: @plugin2, entry: @entry2, project: @project2, installed: '1.6.0')
+      @security_advisory = create(:security_advisory, patched_versions: ">= 1.6.1", plugin: @plugin2)
+    end
+    context '脆弱性のあるプロジェクトがある場合' do
+      describe '.security_order' do
+        it '脆弱性のあるプロジェクトが先頭に来ること' do
+          expect(Project.security_order([@project2.id])).to eq [@project2, @project1]
+        end
+      end
+    end
+    context '脆弱性のあるプロジェクトが一つもない場合' do
+      describe '.security_order' do
+        it '脆弱性のあるプロジェクトが先頭に来ること' do
+          expect(Project.security_order([])).to eq [@project1, @project2]
+        end
+      end
+    end
+  end
+
   # describe 'クラスメソッド' do
 
   #   describe '.update_all' do

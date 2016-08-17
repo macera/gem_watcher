@@ -54,7 +54,17 @@ class Project < ActiveRecord::Base
   after_create :create_created_table_log
   after_update :create_updated_table_log
 
-  # project plugin project_version 更新
+  # 脆弱性情報があるプロジェクトを上にする
+  scope :security_order, ->(ids) {
+    if ids.present?
+      values = "(#{ids.join(',')})"
+      order("CASE WHEN id IN #{values} THEN 1 ELSE 0 END DESC, gitlab_created_at DESC")
+    else
+      order("gitlab_created_at DESC")
+    end
+  }
+
+  # project plugin entry project_version 更新
   def self.update_projects
     Project.all.each do |project|
       begin
@@ -64,7 +74,7 @@ class Project < ActiveRecord::Base
           project.update_plugins_and_versions  # bundle list
         end
         if project.has_gemfile_in_remote?
-          project.update_versions                 # bundle outdated
+          project.update_versions              # bundle outdated
         end
       rescue Gitlab::Error::Forbidden => e
         CronLog.error_create(
@@ -148,15 +158,15 @@ class Project < ActiveRecord::Base
     exist_file?('Gemfile')
   end
 
+  # Gemfile.lockがあるプロジェクトか調べる(リモート)
   def has_gemfile_lock_in_remote?
     exist_file?('Gemfile.lock')
   end
 
-  # projectのディレクトリを作成
+  # projectのディレクトリ、Gemfile、Gemfile.lockを作成
   def generate_project_files
     path = "#{Rails.root}/#{Settings.path.working_directory}"
     Dir.chdir(path) do
-      # TODO: gitを使わなくて済むように修正する
       run("mkdir #{name}") unless Dir.exist?("name")
     end
     Dir.chdir("#{path}/#{name}") do
@@ -172,7 +182,6 @@ class Project < ActiveRecord::Base
           file.print(newest_gemfile_lock)
         end
       end
-      #run("git clone #{ssh_url_to_repo}")
     end
   end
 
@@ -219,7 +228,7 @@ class Project < ActiveRecord::Base
   end
 
   # bundle list コマンド
-  # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
+  # 新しいgemが追加されたら、project_version追加(plugin、entryがなければ作成)
   def create_plugins_and_versions
     gemfile_gems = gemfile_list
     path = "#{Rails.root}/#{Settings.path.working_directory}/#{name}"
@@ -260,7 +269,7 @@ class Project < ActiveRecord::Base
   end
 
   # bundle list コマンド
-  # 新しいgemが追加されたら、project_version追加(pluginがなければ作成)
+  # 新しいgemが追加されたら、project_version追加(plugin、entryがなければ作成)
   # 既存のgemが削除されたら、project_version削除(versionが1件もなくなればplugin削除)
   def update_plugins_and_versions
     gemfile_gems = gemfile_list
@@ -313,12 +322,8 @@ class Project < ActiveRecord::Base
         # 削除すべきgemがあれば削除する
         project_versions.each do |version|
           unless names.include?(version.plugin.name)
-            #target_gem = version.plugin
+            # versionが1件もないpluginの場合削する(コールバック)
             version.destroy
-            # versionが1件もないpluginの場合削する
-            # if target_gem.project_versions.blank?
-            #   target_gem.destroy
-            # end
           end
         end
 
@@ -353,8 +358,6 @@ class Project < ActiveRecord::Base
 
           project_version = project_versions.joins(:plugin).where('plugins.name' => plugin_name).first
           if project_version
-            # development, testのみのgemは除く
-            #return unless production?(line)
             project_version.update!(attr)
           end
         end
@@ -373,7 +376,6 @@ class Project < ActiveRecord::Base
   # Gemfileの内容を返す
   def newest_gemfile
     Gitlab.file_contents(gitlab_id, 'Gemfile').force_encoding("UTF-8")
-    #.encode(Encoding::Windows_31J, Encoding::UTF_8, undef: :replace)
   end
 
   def newest_gemfile_lock
@@ -403,7 +405,7 @@ class Project < ActiveRecord::Base
   def comment_gems_with_path_option
     Tempfile.open('tmp_file') do |tf|
       IO.foreach('Gemfile') do |line|
-        # TODO: 一旦git githubもエラー防ぐ為に外します
+        # TODO: 一旦git githubもエラー防ぐ為に外します。あとで改修予定
         if line =~ /gem\s['|"]\S+['|"].+(path|git|github):/
           line = line.gsub(/gem/, '#gem')
         end
@@ -414,6 +416,7 @@ class Project < ActiveRecord::Base
     end
   end
 
+  # このプロジェクトのgemに脆弱性があるか
   def has_security_alert?
     project_versions.each do |version|
       return true if SecurityAdvisory.check_gem(version.plugin, version.installed).present?
