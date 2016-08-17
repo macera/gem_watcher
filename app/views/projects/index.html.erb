@@ -38,7 +38,7 @@
       <%= project.project_versions.only_gemfile.newest_versions.count %>
     </td>
     <td class="center aligned">
-      <% if project.has_security_alert? %>
+      <% if @security_alert_ids.include?(project.id) %>
         <i class="warning sign icon red"></i>
       <% end %>
     </td>
