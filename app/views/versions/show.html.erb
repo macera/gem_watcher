@@ -36,6 +36,9 @@
               <div class="header">
                 <span style='color:red;'><%= topic.title %></span>
                 <span style="padding-left:10em;">
+                  <% if topic.url %>
+                    <%= link_to "詳細", topic.url, target: '_blank', class: 'ui button small' %>
+                  <% end %>
                   <% if topic.cve %>
                     <%= link_to "CVE", "#{Settings.links.cve}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
                     <%= link_to "JVN", "#{Settings.links.jvn}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>

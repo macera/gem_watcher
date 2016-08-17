@@ -16,6 +16,7 @@
 #  path                :string
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
+#  url                 :string
 #
 # Indexes
 #
@@ -77,6 +78,7 @@ class SecurityAdvisory < ApplicationRecord
       framework:           data['framework'],
       cve:                 data['cve'],
       osvdb:               data['osvdb'],
+      url:                 data['url'],
       description:         data['description'],
       cvss_v2:             data['cvss_v2'],
       cvss_v3:             data['cvss_v3'],
