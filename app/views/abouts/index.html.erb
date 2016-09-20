@@ -9,15 +9,12 @@
 
 <div class="ui raised segment">
   <h4 class="ui header">脆弱性情報のソース</h4>
-  <p>
-    GEMの脆弱性情報は以下のリポジトリ、RSS（RSSのURLは「このフォーラムについて」リンク先に記載）より取得しています。
-    <div class="ui list">
-      <div class="item">ruby-advisory-db: <%= link_to nil, "#{Settings.links.ruby_advisory_db}", target: '_blank' %></div>
-      <div class="item">ruby-security-ann(RSS): <%= link_to nil, "#{Settings.links.ruby_security_ann}", target: '_blank' %></div>
-      <div class="item">rubyonrails-security(RSS): <%= link_to nil, "#{Settings.links.rubyonrails_security}", target: '_blank' %></div>
-    </div>
-
-  </p>
+  GEMの脆弱性情報は以下のリポジトリ、RSS（RSSのURLは「このフォーラムについて」リンク先に記載）より取得しています。
+  <div class="ui list">
+    <div class="item">ruby-advisory-db: <%= link_to nil, "#{Settings.links.ruby_advisory_db}", target: '_blank' %></div>
+    <div class="item">ruby-security-ann(RSS): <%= link_to nil, "#{Settings.links.ruby_security_ann}", target: '_blank' %></div>
+    <div class="item">rubyonrails-security(RSS): <%= link_to nil, "#{Settings.links.rubyonrails_security}", target: '_blank' %></div>
+  </div>
 </div>
 
 <div class="ui raised segment">

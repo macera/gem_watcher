@@ -1,13 +1,13 @@
 <h2 class="ui header">
   ログ
-  <div class="sub header">
-    DB処理やエラーのログ一覧。
-    <ul style="list-style:none;">
-      <li>※ リリースフィードの追加ログは出ません。</li>
-      <li>※ プロジェクトのそれぞれのgem(version)の追加・更新・削除のログは出ません。</li>
-    </ul>
-  </div>
 </h2>
+<div class="sub header">
+  DB処理やエラーのログ一覧。
+  <ul style="list-style:none;">
+    <li>※ リリースフィードの追加ログは出ません。</li>
+    <li>※ プロジェクトのそれぞれのgem(version)の追加・更新・削除のログは出ません。</li>
+  </ul>
+</div>
 
 <div class="ui form">
   <%= search_form_for @search, url: cron_logs_path do |f| %>
@@ -44,7 +44,7 @@
     <tr>
     <th>発生箇所(テーブル)</th>
     <th>種別</th>
-    <th>内容</th>
+    <th class="">内容</th>
     <th>作成日</th>
     </tr>
   </thead>
@@ -53,7 +53,7 @@
     <tr class="<%= log.state %>">
       <td><%= t "activerecord.models.#{log.table_name}" %></td>
       <td><%= log.state %></td>
-      <td width="60%"><%= log.content %></td>
+      <td><%= log.content %></td>
       <td><%= l log.created_at %></td>
     </tr>
   <% end %>

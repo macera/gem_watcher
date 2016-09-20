@@ -5,7 +5,7 @@
 
       <h2 class="ui header">
         Gem Release Feeds
-        <div class="sub header">それぞれのGemの最新リリースフィードを表示しています。</div>
+        <span class="sub header">それぞれのGemの最新リリースフィードを表示しています。</span>
       </h2>
 
       <div class="ui segment">
@@ -13,7 +13,6 @@
           <div class="title active">
             <h3 class="ui header">
               Rails Release Feeds
-              <div class="sub header"></div>
               <%= link_to('Rails総合', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
             </h3>
           </div>

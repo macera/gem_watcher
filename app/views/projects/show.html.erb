@@ -62,7 +62,7 @@
     <% @plugins.each do |version| %>
       <% target_versions = version.security_check %>
       <% state = 'negative' if target_versions.present? %>
-      <tr class=<%= state %>>
+      <tr class="<%= state %>">
         <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
         <td><%= version.newest %></td>
         <td><%= link_to version.installed, plugin_version_path(plugin_id: version.plugin.id, id: version.entry.id) %></td>
