@@ -93,7 +93,7 @@ class Project < ActiveRecord::Base
   # GitLabで新しく追加されたプロジェクトを管理下に追加
   def self.add_projects(option={})
     projects = gitlab_projects
-    projects.sort_by! {|p| p.id } if option[:sort]
+    projects.sort_by! {|p| p.id } if option[:sort] #(&:id)
     projects.each do |project|
       begin
         result = Project.find_by(gitlab_id: project.id)
@@ -111,7 +111,7 @@ class Project < ActiveRecord::Base
           has_gemfile = model.has_gemfile_in_remote?
           model.gemfile_content = model.newest_gemfile if has_gemfile
           model.commit_id = model.gitlab_commit_id
-          a = model.save
+          model.save!
 
           model.generate_project_files        # git clone(mkdir + copy Gemfile)
           if has_gemfile
@@ -250,11 +250,12 @@ class Project < ActiveRecord::Base
             # p new_plugin.name
             new_plugin.save! if new_plugin.changed?
 
-            Entry.update_all(new_plugin)
-            version = split_version(value[1])
-            entry = new_plugin.entries.where(major_version: version[0],
-                                             minor_version: version[1],
-                                             patch_version: version[2]
+            # TODO:
+            Entry.update_list(new_plugin)
+            version_value = split_version(value[1])
+            entry = new_plugin.entries.where(major_version: version_value[0],
+                                             minor_version: version_value[1],
+                                             patch_version: version_value[2]
             ).first
 
             project_versions.create!(installed: value[1],
@@ -302,12 +303,11 @@ class Project < ActiveRecord::Base
               new_plugin.save! if new_plugin.changed?
 
               # TODO: この時、plugin.entriesを作成
-              Entry.update_all(new_plugin)
-              # TODO: value[1]のversionのentryをproject_versionに登録する
-              version = split_version(value[1])
-              entry = new_plugin.entries.where(major_version: version[0],
-                                               minor_version: version[1],
-                                               patch_version: version[2]
+              Entry.update_list(new_plugin)
+              version_value = split_version(value[1])
+              entry = new_plugin.entries.where(major_version: version_value[0],
+                                               minor_version: version_value[1],
+                                               patch_version: version_value[2]
               ).first
 
               project_versions.create!(installed: value[1],

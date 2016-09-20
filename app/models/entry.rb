@@ -72,7 +72,7 @@ class Entry < ActiveRecord::Base
     %w()
   end
 
-  def self.update_all(plugin)
+  def self.update_list(plugin)
     # TODO: rubygemに登録されていないgem フラグをもたせるようにしたい
     gem_info = Gems.info(plugin.name)
     return unless gem_info.is_a?(Hash)

@@ -93,7 +93,7 @@ class ProjectVersion < ActiveRecord::Base
     # installedを細かいバージョンカラムにセットする
     def set_versions
       return unless installed
-      version = installed.split('.')
+      version = split_version(installed)
       self.major_version = version[0]
       self.minor_version = version[1]
       self.patch_version = version[2]
@@ -114,7 +114,7 @@ class ProjectVersion < ActiveRecord::Base
 
         unless entry
           if installed
-            Entry.update_all(new_plugin)
+            Entry.update_list(new_plugin)
             version = split_version(installed)
             entry = plugin.entries.where(major_version: version[0],
                                          minor_version: version[1],
