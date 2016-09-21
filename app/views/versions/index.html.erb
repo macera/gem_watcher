@@ -20,8 +20,16 @@
 
 <div class="ui grid">
 
-  <%= render partial: 'shared/latest_versions',
-    locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+  <div class="six wide column">
+    <%= render partial: 'shared/latest_versions',
+      locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+    <div class="ui segment">
+      <h2><i class="external icon"></i>外部リンク</h2>
+      <%= link_to @plugin.homepage_uri || "#{Settings.feeds.rubygem}#{@plugin.name}", class: "", target: '_blank' do %>
+        <i class="external icon"></i>公式ホームページ
+      <% end %>
+    </div>
+  </div>
 
   <div class="ten wide column">
     <div class="ui segment">

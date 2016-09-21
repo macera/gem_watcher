@@ -55,7 +55,6 @@
       <th>現在のバージョン</th>
       <th>固定</th>
       <th class="four wide column">脆弱性情報(依存先含む)</th>
-      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -63,7 +62,7 @@
       <% target_versions = version.security_check %>
       <% state = 'negative' if target_versions.present? %>
       <tr class="<%= state %>">
-        <td><%= link_to version.plugin.name, version.plugin.source_code_uri %></td>
+        <td><%= version.plugin.name %></td>
         <td><%= version.newest %></td>
         <td><%= link_to version.installed, plugin_version_path(plugin_id: version.plugin.id, id: version.entry.id) %></td>
         <td><%= version.requested %></td>
@@ -77,7 +76,6 @@
             <% end %>
           <% end %>
         </td>
-        <td><%= link_to '詳細', plugin_path(version.plugin.id), class: "ui tiny button" %></td>
       </tr>
     <% end %>
   </tbody>

@@ -13,7 +13,6 @@
           <div class="title active">
             <h3 class="ui header">
               Rails Release Feeds
-              <%= link_to('Rails総合', plugin_path(@rails_entries.first.plugin.id), class: 'ui button right floated') if @rails_entries.first %>
             </h3>
           </div>
           <div class="content active">
@@ -31,7 +30,7 @@
                   <tr>
                     <td>
                       <%= new_label(entry.published) %>
-                      <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
+                      <strong><%= entry.title %></strong>
                     </td>
                     <td><%= l entry.published %></td>
                     <td>
@@ -102,7 +101,7 @@
               <tr>
                 <td>
                   <%= new_label(entry.published) %>
-                  <%= link_to(truncate(entry.title, length: 30), entry.url, target: "_blank", class: "") %>
+                  <strong><%= entry.title %></strong>
                 </td>
                 <td><%= l entry.published %></td>
                 <td>
