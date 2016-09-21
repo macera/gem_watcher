@@ -99,6 +99,17 @@ class SecurityAdvisory < ApplicationRecord
     advisories
   end
 
+  # def self.check_dependency(plugin, requirements)
+  #   plugin.entries.order('published desc').each do |entry|
+  #     plugin.security_advisories.order('date desc').each do |advisory|
+  #       if advisory.vulnerable?(entry.version) && advisory.match_requirements?(requirements, entry.version)
+  #         return entry
+  #       end
+  #     end
+  #   end
+  #   return false
+  # end
+
   def title
     cve_id || osvdb_id
   end
@@ -130,6 +141,13 @@ class SecurityAdvisory < ApplicationRecord
       patched_version === Gem::Version.create(version)
     end
   end
+
+  def match_requirements?(requirements, version)
+    parse_versions(requirements).any? do |required_version|
+      required_version === Gem::Version.create(version)
+    end
+  end
+
 
   # version(引数)は脆弱か
   def vulnerable?(version)

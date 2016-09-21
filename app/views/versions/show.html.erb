@@ -21,8 +21,24 @@
 
 <div class="ui grid">
 
-  <%= render partial: 'shared/latest_versions',
-    locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+  <div class="six wide column">
+    <%= render partial: 'shared/latest_versions',
+      locals: { release_feeds: @release_feeds, plugin: @plugin } %>
+
+    <div class="ui segment">
+      <h2><i class="external icon"></i>外部リンク</h2>
+      <p>
+        <%= link_to @plugin.homepage_uri || "#{Settings.feeds.rubygem}#{@plugin.name}", class: "", target: '_blank' do %>
+             <i class="external icon"></i>公式ホームページ
+        <% end %>
+      </p>
+      <p>
+        <%= link_to @version.url, target: '_blank' do %>
+          <i class="external icon"></i>Version情報を詳しく見る(RubyGems.org)
+        <% end %>
+      </p>
+    </div>
+  </div>
 
   <div class="ten wide column">
 
@@ -71,7 +87,6 @@
           </div>
         <% end %>
       </div>
-
     </div>
 
     <div class="ui segment">
@@ -82,6 +97,8 @@
             <tr>
               <th>gem名</th>
               <th>必要条件</th>
+              <th>最新バージョン(必要条件下)</th>
+              <th>脆弱性</th>
             </tr>
           </thead>
           <tbody>
@@ -95,6 +112,20 @@
                   <% end %>
                 </td>
                 <td><%= dependency.requirements %></td>
+                <td>
+                  <% entry = dependency.latest_version_in_requirements %>
+                  <%= link_to entry.version, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id) if entry %>
+                </td>
+                <td class="center aligned">
+                  <% if dependency.plugin  %>
+                    <% case dependency.alert_status %>
+                    <% when :error %>
+                      <i class="warning sign icon red"></i>
+                    <% when :children_error %>
+                      <i class="warning sign icon yellow"></i>
+                    <% end %>
+                  <% end %>
+                </td>
               </tr>
             <% end %>
           </tbody>
