@@ -5,7 +5,7 @@ class VersionsController < ApplicationController
 
   def index
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @entries = @plugin.entries.order('major_version desc, minor_version desc, patch_version desc')
+    @entries = @plugin.entries.order('major_version desc, minor_version desc').ordered_patch_as_int
   end
 
 

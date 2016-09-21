@@ -66,6 +66,10 @@ class Entry < ActiveRecord::Base
     joins(:plugin).merge(Plugin.described).distinct.where.not('plugins.name' => 'rails').where('published' => Entry.select('max(published), plugin_id').group('plugin_id').pluck('max(published)')).order('entries.published desc')
   }
 
+  # patchバージョンを正しく並び替える(英字を含む場合もあるため)
+  # string_to_arrayは、PostgreSQL9.1からはnullの場合空配列を返す
+  scope :ordered_patch_as_int, -> { order("case when patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0'), '.')::int[] ELSE NULL END desc NULLS LAST") }
+
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
