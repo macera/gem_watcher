@@ -62,8 +62,12 @@ class SecurityAdvisory < ApplicationRecord
       directory = USER_PATH.join('gems', plugin.name)
       next unless directory.exist?
       Dir.glob(directory.join('*.yml')).each do |path|
-        load(path, plugin)
+        advisory = load(path, plugin)
       end
+
+      # バージョン(entry)との中間テーブル(脆弱性テーブルとパッチテーブル)を作る
+      # error_version
+      # patched_version
     end
   end
 
@@ -86,7 +90,7 @@ class SecurityAdvisory < ApplicationRecord
       unaffected_versions: (data['unaffected_versions'] || []).join(':'),
       patched_versions:    (data['patched_versions'] || []).join(':')
     )
-
+    advisory
   end
 
   def self.check_gem(plugin, version)
@@ -99,16 +103,15 @@ class SecurityAdvisory < ApplicationRecord
     advisories
   end
 
-  # def self.check_dependency(plugin, requirements)
-  #   plugin.entries.order('published desc').each do |entry|
-  #     plugin.security_advisories.order('date desc').each do |advisory|
-  #       if advisory.vulnerable?(entry.version) && advisory.match_requirements?(requirements, entry.version)
-  #         return entry
-  #       end
-  #     end
-  #   end
-  #   return false
-  # end
+  def self.patch_list(plugin, version)
+    advisories = []
+    plugin.security_advisories.order('date desc').each do |advisory|
+      if advisory.patched?(version) && !advisory.unaffected?(version)
+        advisories << advisory
+      end
+    end
+    advisories
+  end
 
   def title
     cve_id || osvdb_id

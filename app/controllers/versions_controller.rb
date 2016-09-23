@@ -5,7 +5,7 @@ class VersionsController < ApplicationController
 
   def index
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @entries = @plugin.entries.order('major_version desc, minor_version desc').ordered_patch_as_int
+    @entries = @plugin.entries.order_by_version
   end
 
 
@@ -13,6 +13,8 @@ class VersionsController < ApplicationController
   def show
     @release_feeds = @plugin.entries.order('published desc').limit(5)
     @securities = SecurityAdvisory.check_gem(@plugin, @version.version)
+
+    @security_patches = SecurityAdvisory.patch_list(@plugin, @version.version)
 
     #@plugin.security_entries.where(published: (@version.published.ago(43200))..(@version.published.since(43200)) )
     @dependencies = @version.dependencies

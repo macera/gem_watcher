@@ -1,0 +1,38 @@
+<div class="item">
+  <div class="content">
+    <div class="header">
+      <span style='color:red;'><%= topic.title %></span>
+      <span style="padding-left:10em;">
+        <% if topic.url %>
+          <%= link_to "詳細", topic.url, target: '_blank', class: 'ui button small' %>
+        <% end %>
+        <% if topic.cve %>
+          <%= link_to "CVE", "#{Settings.links.cve}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+          <%= link_to "JVN", "#{Settings.links.jvn}#{topic.cve_id}", target: '_blank', class: 'ui button small' %>
+        <% else %>
+          <%= link_to "OSVDB", "#{Settings.links.osvdb}#{topic.osvdb}", target: '_blank', class: 'ui button small' %>
+          <%= link_to "RubySec", "#{Settings.links.rubysec}#{topic.osvdb_id}", target: '_blank', class: 'ui button small' %>
+        <% end %>
+      </span>
+    </div>
+
+    <div class="discription">
+
+      <div class="ui list">
+        <div class="item">
+          <strong>影響なしバージョン:</strong>
+          <%= topic.unaffected_versions_list %>
+        </div>
+        <div class="item">
+          <strong>修正バージョン:</strong>
+          <%= topic.patched_versions_list %>
+        </div>
+        <div class="item">
+          <strong>開示日:</strong>
+          <%= l topic.date %>
+        </div>
+      </div>
+      <%= simple_format topic.description %>
+    </div>
+  </div>
+</div>
