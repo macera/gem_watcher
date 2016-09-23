@@ -33,7 +33,7 @@ class Dependency < ApplicationRecord
     return false unless plugin
     # requirementsで最新のversionで
     target_entry = false
-    plugin.entries.order('major_version desc, minor_version desc, patch_version desc').each do |entry|
+    plugin.entries.order_by_version.each do |entry|
       parse_versions(requirements).each do |required_version|
         if required_version === Gem::Version.create(entry.version)
           target_entry = entry unless target_entry
@@ -54,13 +54,12 @@ class Dependency < ApplicationRecord
     return false
   end
 
-  # requirementsで最新のversionで
+  # requirements中の最新のversionを取得する
   def latest_version_in_requirements
     return nil unless plugin
-    target_entry = false
+    target_entry = nil
 
-    # TODO: patch_versionが正しく並んでいるか不安
-    plugin.entries.order('major_version desc, minor_version desc, patch_version desc').each do |entry|
+    plugin.entries.order_by_version.each do |entry|
       parse_versions(requirements).each do |required_version|
         if required_version === Gem::Version.create(entry.version)
           target_entry = entry unless target_entry

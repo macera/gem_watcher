@@ -68,7 +68,7 @@ class Entry < ActiveRecord::Base
 
   # patchバージョンを正しく並び替える(英字を含む場合もあるため)
   # string_to_arrayは、PostgreSQL9.1からはnullの場合空配列を返す
-  scope :ordered_patch_as_int, -> { order("case when patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0'), '.')::int[] ELSE NULL END desc NULLS LAST") }
+  scope :order_by_version, -> { order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST") }
 
 
   # 許可するカラムの名前をオーバーライドする

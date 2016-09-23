@@ -26,6 +26,38 @@ RSpec.describe Entry, type: :model do
       end
 
     end
+
+    describe '.order_by_version' do
+      before do
+        @plugin = create(:plugin)
+        create(:version, plugin: @plugin)
+        @entry1 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '1.1')
+        @entry2 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '3')
+        @entry3 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '2.1')
+        @entry4 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '2.2')
+      end
+      context 'patch_versionに英字が含まれている場合' do
+        it '正しくソートすること' do
+          expect(Entry.order_by_version).to eq [@entry2, @entry4, @entry3, @entry1]
+        end
+      end
+      context 'patch_versionに英字が含まれていない場合' do
+        before do
+          @entry5 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '1.backport1')
+          @entry6 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '1.backport2')
+          @entry7 = create(:entry, plugin: @plugin, major_version: 1, minor_version: 1, patch_version: '1.0')
+        end
+        # 1.1
+        # 1.backport2(=1.0.2文字部分は0.0として扱う)
+        # 1.backport1(=1.0.1文字部分は0.0として扱う)
+        # 1.0
+        it '正しくソートすること' do
+          expect(Entry.order_by_version).to eq [@entry2, @entry4, @entry3, @entry1, @entry6, @entry5, @entry7]
+        end
+      end
+
+    end
+
   end
 
   describe 'クラスメソッド' do
@@ -43,7 +75,7 @@ RSpec.describe Entry, type: :model do
         )
       end
       it 'entryが作成されること' do
-        expect{ Entry.update_all(@plugin) }.to change{ Entry.count }.by(3)
+        expect{ Entry.update_list(@plugin) }.to change{ Entry.count }.by(3)
       end
     end
 
