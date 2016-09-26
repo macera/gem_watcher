@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160817040455) do
+ActiveRecord::Schema.define(version: 20160926044208) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -47,6 +47,15 @@ ActiveRecord::Schema.define(version: 20160817040455) do
     t.integer  "minor_version"
     t.string   "patch_version"
     t.index ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
+  end
+
+  create_table "patched_entries", force: :cascade do |t|
+    t.integer  "entry_id"
+    t.integer  "security_advisory_id"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+    t.index ["entry_id"], name: "index_patched_entries_on_entry_id", using: :btree
+    t.index ["security_advisory_id"], name: "index_patched_entries_on_security_advisory_id", using: :btree
   end
 
   create_table "plugins", force: :cascade do |t|
@@ -124,12 +133,25 @@ ActiveRecord::Schema.define(version: 20160817040455) do
     t.index ["plugin_id"], name: "index_security_entries_on_plugin_id", using: :btree
   end
 
+  create_table "vulnerable_entries", force: :cascade do |t|
+    t.integer  "entry_id"
+    t.integer  "security_advisory_id"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+    t.index ["entry_id"], name: "index_vulnerable_entries_on_entry_id", using: :btree
+    t.index ["security_advisory_id"], name: "index_vulnerable_entries_on_security_advisory_id", using: :btree
+  end
+
   add_foreign_key "dependencies", "entries"
   add_foreign_key "dependencies", "plugins"
   add_foreign_key "entries", "plugins"
+  add_foreign_key "patched_entries", "entries"
+  add_foreign_key "patched_entries", "security_advisories"
   add_foreign_key "project_versions", "entries"
   add_foreign_key "project_versions", "plugins"
   add_foreign_key "project_versions", "projects"
   add_foreign_key "security_advisories", "plugins"
   add_foreign_key "security_entries", "plugins"
+  add_foreign_key "vulnerable_entries", "entries"
+  add_foreign_key "vulnerable_entries", "security_advisories"
 end

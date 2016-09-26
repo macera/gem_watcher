@@ -22,6 +22,7 @@
                 <th>リリースタイトル(Version)</th>
                 <th>更新日時</th>
                 <th>更新可能なプロジェクト</th>
+                <th>プロジェクトの脆弱性情報</th>
                 <th></th>
                 </tr>
               </thead>
@@ -50,8 +51,8 @@
                       <% else %>
                         <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version <= ? AND NOT(minor_version = ? AND patch_version = ?)', entry.major_version, entry.minor_version, entry.minor_version, entry.patch_version]) %>
                       <% end %>
-
-                      <% versions.order(major_version: :desc, minor_version: :desc, patch_version: :desc).limit(3).each do |v| %>
+                      <% project_versions = versions.order_by_version %>
+                      <% project_versions.limit(3).each do |v| %>
                         <%= link_to(project_path(v.project.id), class: 'item') do %>
                           <div class="ui small label">
                             <%= v.project.name %> <%= v.installed %>
@@ -60,7 +61,17 @@
                       <% end %>
                       <%= show_more(versions.count, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id)) %>
                     </td>
-
+                    <td>
+                      <%#更新可能でもっとも古いバージョン project_versions.last %>
+                      <% if project_versions.last %>
+                        <% alerts = project_versions.last.entry.security_alert.count %>
+                        <% if alerts > 0 %>
+                          <a class="ui red circular label">
+                            <%= alerts %>
+                          </a>
+                        <% end %>
+                      <% end %>
+                    </td>
                     <td>
                       <%= link_to '詳細情報',
                         plugin_version_path(plugin_id: entry.plugin.id, id: entry.id),
@@ -93,6 +104,7 @@
             <th>リリースタイトル(Version)</th>
             <th>更新日時</th>
             <th>更新可能なプロジェクト</th>
+            <th>プロジェクトの脆弱性情報</th>
             <th></th>
             </tr>
           </thead>
@@ -105,15 +117,26 @@
                 </td>
                 <td><%= l entry.published %></td>
                 <td>
-                  <% entries = entry.plugin.project_versions.where(['installed < ?', entry.version]) %>
-                  <% entries.order('installed desc').limit(3).each do |v| %>
+                  <% project_versions = entry.plugin.project_versions.updatable_projects(entry.version) %>
+                  <% project_versions.limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
                       <div class="ui small label">
                         <%= v.project.name %> <%= v.installed %>
                       </div>
                     <% end %>
                   <% end %>
-                  <%= show_more(entries.count, plugin_path(entry.plugin.id)) %>
+                  <%= show_more(project_versions.count, plugin_path(entry.plugin.id)) %>
+                </td>
+                <td>
+                  <%#更新可能でもっとも古いバージョン project_versions.last %>
+                  <% if project_versions.last %>
+                    <% alerts = project_versions.last.entry.security_alert.count %>
+                    <% if alerts > 0 %>
+                      <a class="ui red circular label">
+                        <%= alerts %>
+                      </a>
+                    <% end %>
+                  <% end %>
                 </td>
                 <td>
                   <%= link_to '詳細情報',

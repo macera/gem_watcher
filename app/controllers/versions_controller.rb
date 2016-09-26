@@ -12,11 +12,9 @@ class VersionsController < ApplicationController
   # gem version詳細画面
   def show
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @securities = SecurityAdvisory.check_gem(@plugin, @version.version)
-
-    @security_patches = SecurityAdvisory.patch_list(@plugin, @version.version)
-
-    #@plugin.security_entries.where(published: (@version.published.ago(43200))..(@version.published.since(43200)) )
+    #@securities = SecurityAdvisory.check_gem(@plugin, @version.version)
+    @vulnerable_securities = @version.vulnerable_securities.order('date desc')
+    @patched_securities = @version.patched_securities.order('date desc')
     @dependencies = @version.dependencies
   end
 

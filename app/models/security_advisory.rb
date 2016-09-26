@@ -34,6 +34,12 @@
 class SecurityAdvisory < ApplicationRecord
   belongs_to :plugin
 
+  has_many :patched_entries
+  #has_many :entries, through: :patched_entries
+
+  has_many :vulnerable_entries
+  #has_many :entries, through: :vulnerable_entries
+
   after_create  :create_created_table_log
   #after_destroy :create_destroyed_table_log
 
@@ -63,11 +69,11 @@ class SecurityAdvisory < ApplicationRecord
       next unless directory.exist?
       Dir.glob(directory.join('*.yml')).each do |path|
         advisory = load(path, plugin)
-      end
 
-      # バージョン(entry)との中間テーブル(脆弱性テーブルとパッチテーブル)を作る
-      # error_version
-      # patched_version
+        # entryとの中間テーブルを作る
+        advisory.create_patched_entries
+        advisory.create_vulnerable_entries
+      end
     end
   end
 
@@ -103,14 +109,22 @@ class SecurityAdvisory < ApplicationRecord
     advisories
   end
 
-  def self.patch_list(plugin, version)
-    advisories = []
-    plugin.security_advisories.order('date desc').each do |advisory|
-      if advisory.patched?(version) && !advisory.unaffected?(version)
-        advisories << advisory
+  # Entryとセキュリティ情報(脆弱性)の中間テーブルを登録する
+  def create_vulnerable_entries
+    plugin.entries.each do |entry|
+      if vulnerable?(entry.version)
+        vulnerable_entries.find_or_create_by!(entry: entry)
       end
     end
-    advisories
+  end
+
+  # Entryとセキュリティ情報(パッチ)の中間テーブルを登録する
+  def create_patched_entries
+    plugin.entries.each do |entry|
+      if patched?(entry.version) && !unaffected?(entry.version)
+        patched_entries.find_or_create_by!(entry: entry)
+      end
+    end
   end
 
   def title

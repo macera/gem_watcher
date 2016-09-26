@@ -49,7 +49,7 @@
       <h2><i class="warning sign icon red"></i>脆弱性情報</h2>
 
       <div class="ui relaxed list">
-        <% @securities.each do |topic| %>
+        <% @vulnerable_securities.each do |topic| %>
           <%= render partial: 'security', locals: { topic: topic } %>
         <% end %>
       </div>
@@ -59,7 +59,7 @@
       <h2><i class="warning sign icon green"></i>脆弱性修正情報</h2>
 
       <div class="ui relaxed list">
-        <% @security_patches.each do |topic| %>
+        <% @patched_securities.each do |topic| %>
           <%= render partial: 'security', locals: { topic: topic } %>
         <% end %>
       </div>

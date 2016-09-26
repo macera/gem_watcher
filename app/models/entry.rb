@@ -29,6 +29,15 @@ class Entry < ActiveRecord::Base
   has_one    :project_version
   has_many   :dependencies, dependent: :destroy
 
+  has_many :patched_entries
+  has_many :patched_securities, through: :patched_entries,
+                                source: 'security_advisory'
+
+  has_many :vulnerable_entries
+  has_many :vulnerable_securities, through: :vulnerable_entries,
+                                   source: 'security_advisory'
+
+
   #after_destroy :create_destroyed_table_log
 
   # rails リリースタイトル一覧
@@ -69,7 +78,6 @@ class Entry < ActiveRecord::Base
   # patchバージョンを正しく並び替える(英字を含む場合もあるため)
   # string_to_arrayは、PostgreSQL9.1からはnullの場合空配列を返す
   scope :order_by_version, -> { order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST") }
-
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
@@ -122,6 +130,17 @@ class Entry < ActiveRecord::Base
       version = title.scan(/\S+\s\((\d+)\)/).first
     end
     version
+  end
+
+  def security_alert
+    alerts = []
+    # 自身の脆弱性の数
+    alerts += vulnerable_entries
+    dependencies.each do |dependency|
+      entry = dependency.latest_version_in_requirements
+      alerts += entry.security_alert
+    end
+    alerts.uniq
   end
 
   # versionを返す

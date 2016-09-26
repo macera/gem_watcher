@@ -32,6 +32,7 @@
 
 class ProjectVersion < ActiveRecord::Base
   include DisplayVersion
+  extend  DisplayVersion
 
   belongs_to :project
   belongs_to :plugin
@@ -64,6 +65,27 @@ class ProjectVersion < ActiveRecord::Base
   scope :updated_versions, -> { where(newest: nil) }
   scope :only_gemfile,     -> { where(described: true) }
   scope :no_gemfile,       -> { where(described: false) }
+  scope :updatable_projects, ->(version) {
+    less_than(version).order_by_version
+  }
+  # 引数のバージョンより低いものを取得する
+  scope :less_than,       ->(version) {
+    v = split_version(version)
+    major = v[0].to_i
+    minor = v[1].to_i
+    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
+    where(["
+      (major_version < ?) OR
+      (major_version = ? AND minor_version < ?) OR
+      (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
+     major,
+     major, minor,
+     major, minor, patch
+   ])
+  }
+  scope :order_by_version, -> {
+    order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST")
+  }
 
   def security_check
     if SecurityAdvisory.check_gem(plugin, installed).present?

@@ -86,6 +86,8 @@ class Plugin < ActiveRecord::Base
                                 provisional_name: nil,
                                 plugin: plugin).first_or_initialize
           end
+          # TODO: requirementsで最新のentry_idを登録する
+
         else
           # 登録されていないgemの場合
 
