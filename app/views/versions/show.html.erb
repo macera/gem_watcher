@@ -49,6 +49,9 @@
       <h2><i class="warning sign icon red"></i>脆弱性情報</h2>
 
       <div class="ui relaxed list">
+        <% if @vulnerable_securities.empty? %>
+          脆弱性情報は1件もありません。
+        <% end %>
         <% @vulnerable_securities.each do |topic| %>
           <%= render partial: 'security', locals: { topic: topic } %>
         <% end %>
@@ -59,6 +62,9 @@
       <h2><i class="warning sign icon green"></i>脆弱性修正情報</h2>
 
       <div class="ui relaxed list">
+        <% if @patched_securities.empty? %>
+          脆弱性修正情報は1件もありません。
+        <% end %>
         <% @patched_securities.each do |topic| %>
           <%= render partial: 'security', locals: { topic: topic } %>
         <% end %>
