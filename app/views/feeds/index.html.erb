@@ -35,22 +35,7 @@
                     </td>
                     <td><%= l entry.published %></td>
                     <td>
-                      <%# 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか? %>
-                      <%# 自分より小さいメジャーバージョンはあるか？ %>
-                      <%
-                        less_minor_version = nil
-                        @rails_entries.each { |e|
-                          if e != entry && e.major_version == entry.major_version && e.minor_version < entry.minor_version
-                            less_minor_version = true
-                          end
-                        }
-                      %>
-
-                      <% if less_minor_version.present? %>
-                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version = ? AND patch_version != ?', entry.major_version, entry.minor_version, entry.patch_version]) %>
-                      <% else %>
-                        <% versions = entry.plugin.project_versions.where(['major_version = ? AND minor_version <= ? AND NOT(minor_version = ? AND patch_version = ?)', entry.major_version, entry.minor_version, entry.minor_version, entry.patch_version]) %>
-                      <% end %>
+                      <% versions = entry.project_versions_by_series(@rails_entries) %>
                       <% project_versions = versions.order_by_version %>
                       <% project_versions.limit(3).each do |v| %>
                         <%= link_to(project_path(v.project.id), class: 'item') do %>
@@ -128,7 +113,7 @@
                   <%= show_more(project_versions.count, plugin_path(entry.plugin.id)) %>
                 </td>
                 <td>
-                  <%#更新可能でもっとも古いバージョン project_versions.last %>
+                  <%#　更新可能でもっとも古いバージョン project_versions.last %>
                   <% if project_versions.last %>
                     <% alerts = project_versions.last.entry.security_alert.count %>
                     <% if alerts > 0 %>

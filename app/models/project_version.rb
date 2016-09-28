@@ -83,6 +83,43 @@ class ProjectVersion < ActiveRecord::Base
      major, minor, patch
    ])
   }
+
+  scope :less_than_patch,    ->(version) {
+    v = split_version(version)
+    major = v[0].to_i
+    minor = v[1].to_i
+    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
+    where(["
+      major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?)",
+     major, minor, patch
+   ])
+  }
+
+  scope :less_than_minor,    ->(version) {
+    v = split_version(version)
+    major = v[0].to_i
+    minor = v[1].to_i
+    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
+    where(["
+    (major_version = ? AND minor_version < ?) OR
+    (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
+    major, minor,
+    major, minor, patch
+    ])
+  }
+
+  scope :less_than_major,    ->(version) {
+    v = split_version(version)
+    major = v[0].to_i
+    minor = v[1].to_i
+    where(["
+    (major_version < ?) OR
+    (major_version = ? AND minor_version < ?)",
+    major,
+    major, minor
+    ])
+  }
+
   scope :order_by_version, -> {
     order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST")
   }
@@ -132,7 +169,7 @@ class ProjectVersion < ActiveRecord::Base
         new_plugin.save! if new_plugin.changed?
         self.plugin = new_plugin
 
-        # gemの依存gemも登録しないといけない！！
+        # TODO: gemの依存gemも登録しないといけない！！
 
         unless entry
           if installed

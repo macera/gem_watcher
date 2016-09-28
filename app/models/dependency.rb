@@ -24,6 +24,7 @@
 class Dependency < ApplicationRecord
   belongs_to :entry
   belongs_to :plugin
+  #belongs_to :plugin_latest_entry, class_name: 'Entry'
 
   #after_create  :create_created_table_log
 
@@ -32,15 +33,7 @@ class Dependency < ApplicationRecord
   def alert_status
     return false unless plugin
     # requirementsで最新のversionで
-    target_entry = false
-    plugin.entries.order_by_version.each do |entry|
-      parse_versions(requirements).each do |required_version|
-        if required_version === Gem::Version.create(entry.version)
-          target_entry = entry unless target_entry
-          break
-        end
-      end
-    end
+    target_entry = latest_version_in_requirements
     return false unless target_entry
     plugin.security_advisories.order('date desc').each do |advisory|
       if advisory.vulnerable?(target_entry.version)

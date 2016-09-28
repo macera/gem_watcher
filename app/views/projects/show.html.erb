@@ -59,6 +59,7 @@
   </thead>
   <tbody>
     <% @plugins.each do |version| %>
+      <%# TODO: 改善必要 %>
       <% target_versions = version.security_check %>
       <% state = 'negative' if target_versions.present? %>
       <tr class="<%= state %>">

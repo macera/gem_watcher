@@ -87,6 +87,7 @@ class Plugin < ActiveRecord::Base
                                 plugin: plugin).first_or_initialize
           end
           # TODO: requirementsで最新のentry_idを登録する
+          # dependency.plugin_latest_entry_id = dependency.latest_version_in_requirements.id
 
         else
           # 登録されていないgemの場合

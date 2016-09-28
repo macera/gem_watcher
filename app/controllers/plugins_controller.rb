@@ -4,7 +4,7 @@ class PluginsController < ApplicationController
   # gem詳細画面
   def show
     @release_feeds = @plugin.entries.order('published desc').limit(5)
-    @securities = @plugin.security_entries.order('published desc')
+    @vulnerable_securities = @plugin.security_advisories.order('date desc')
   end
 
   private

@@ -73,46 +73,43 @@
 
     <div class="ui segment">
       <h2><i class="diamond icon"></i>Runtime Dependencies</h2>
-      <% if @dependencies.present? %>
-        <table class="ui very basic table">
-          <thead>
-            <tr>
-              <th>gem名</th>
-              <th>必要条件</th>
-              <th>最新バージョン(必要条件下)</th>
-              <th>脆弱性</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @dependencies.each do |dependency| %>
+      <div class="ui">
+        <% unless @dependencies.present? %>
+          Runtime Dependenciesは1件も存在しません。
+        <% else %>
+          <table class="ui very basic table">
+            <thead>
               <tr>
-                <td>
-                  <% if dependency.plugin %>
-                    <%= link_to dependency.plugin.name, plugin_path(dependency.plugin.id) %>
-                  <% else %>
-                    <%= dependency.provisional_name %>
-                  <% end %>
-                </td>
-                <td><%= dependency.requirements %></td>
-                <td>
-                  <% entry = dependency.latest_version_in_requirements %>
-                  <%= link_to entry.version, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id) if entry %>
-                </td>
-                <td class="center aligned">
-                  <% if dependency.plugin  %>
-                    <% case dependency.alert_status %>
-                    <% when :error %>
-                      <i class="warning sign icon red"></i>
-                    <% when :children_error %>
-                      <i class="warning sign icon yellow"></i>
-                    <% end %>
-                  <% end %>
-                </td>
+                <th>gem名</th>
+                <th>必要条件</th>
+                <th>最新バージョン(必要条件下)</th>
+                <th>脆弱性</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
-      <% end %>
+            </thead>
+            <tbody>
+              <% @dependencies.each do |dependency| %>
+                <tr>
+                  <td>
+                    <% if dependency.plugin %>
+                      <%= link_to dependency.plugin.name, plugin_path(dependency.plugin.id) %>
+                    <% else %>
+                      <%= dependency.provisional_name %>
+                    <% end %>
+                  </td>
+                  <td><%= dependency.requirements %></td>
+                  <td>
+                    <% entry = dependency.latest_version_in_requirements %>
+                    <%= link_to entry.version, plugin_version_path(plugin_id: entry.  plugin.id, id: entry.id) if entry %>
+                  </td>
+                  <td class="center aligned">
+                    <%= alert_icon(dependency.alert_status) %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
     </div>
 
   </div>

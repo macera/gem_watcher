@@ -29,6 +29,8 @@ class Entry < ActiveRecord::Base
   has_one    :project_version
   has_many   :dependencies, dependent: :destroy
 
+  #has_many :target_dependencies, class_name: 'Dependency', foreign_key: :plugin_latest_entry_id
+
   has_many :patched_entries
   has_many :patched_securities, through: :patched_entries,
                                 source: 'security_advisory'
@@ -132,13 +134,50 @@ class Entry < ActiveRecord::Base
     version
   end
 
+  def project_versions_by_series(entries)
+    # 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか?
+    less_minor_version = less_minor_version?(entries)
+    # 最も小さいメジャーバージョンか？
+    least_major_version = least_major_version?(entries)
+    if less_minor_version
+      return plugin.project_versions.less_than_patch(version)
+    else
+      if least_major_version
+        return plugin.project_versions.less_than_major(version)
+      else
+        return plugin.project_versions.less_than_minor(version)
+      end
+    end
+  end
+
+
+  def less_minor_version?(entries)
+    result = false
+    entries.each do |e|
+      if e != self && e.major_version == major_version && e.minor_version < minor_version
+        result = true
+      end
+    end
+    result
+  end
+
+  def least_major_version?(entries)
+    result = true
+    entries.each do |e|
+      if e != self && e.major_version < major_version
+        result = false
+      end
+    end
+    result
+  end
+
   def security_alert
     alerts = []
     # 自身の脆弱性の数
     alerts += vulnerable_entries
     dependencies.each do |dependency|
       entry = dependency.latest_version_in_requirements
-      alerts += entry.security_alert
+      alerts += entry.security_alert if entry
     end
     alerts.uniq
   end
