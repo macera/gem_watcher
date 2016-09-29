@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160926044208) do
+ActiveRecord::Schema.define(version: 20160928085208) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -47,6 +47,15 @@ ActiveRecord::Schema.define(version: 20160926044208) do
     t.integer  "minor_version"
     t.string   "patch_version"
     t.index ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
+  end
+
+  create_table "latest_entry_in_requirements", force: :cascade do |t|
+    t.integer  "dependency_id"
+    t.integer  "entry_id"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.index ["dependency_id"], name: "index_latest_entry_in_requirements_on_dependency_id", using: :btree
+    t.index ["entry_id"], name: "index_latest_entry_in_requirements_on_entry_id", using: :btree
   end
 
   create_table "patched_entries", force: :cascade do |t|
@@ -145,6 +154,8 @@ ActiveRecord::Schema.define(version: 20160926044208) do
   add_foreign_key "dependencies", "entries"
   add_foreign_key "dependencies", "plugins"
   add_foreign_key "entries", "plugins"
+  add_foreign_key "latest_entry_in_requirements", "dependencies"
+  add_foreign_key "latest_entry_in_requirements", "entries"
   add_foreign_key "patched_entries", "entries"
   add_foreign_key "patched_entries", "security_advisories"
   add_foreign_key "project_versions", "entries"

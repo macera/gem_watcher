@@ -22,12 +22,12 @@
                 <th>リリースタイトル(Version)</th>
                 <th>更新日時</th>
                 <th>更新可能なプロジェクト</th>
-                <th>プロジェクトの脆弱性情報</th>
+                <th>プロジェクト脆弱性の有無</th>
                 <th></th>
                 </tr>
               </thead>
               <tbody>
-                <% @rails_entries.each do |entry| %>
+                <% @rails_entries.includes(:dependencies).each do |entry| %>
                   <tr>
                     <td>
                       <%= new_label(entry.published) %>
@@ -37,7 +37,7 @@
                     <td>
                       <% versions = entry.project_versions_by_series(@rails_entries) %>
                       <% project_versions = versions.order_by_version %>
-                      <% project_versions.limit(3).each do |v| %>
+                      <% project_versions.includes(:project).limit(3).each do |v| %>
                         <%= link_to(project_path(v.project.id), class: 'item') do %>
                           <div class="ui small label">
                             <%= v.project.name %> <%= v.installed %>
@@ -48,13 +48,8 @@
                     </td>
                     <td>
                       <%#更新可能でもっとも古いバージョン project_versions.last %>
-                      <% if project_versions.last %>
-                        <% alerts = project_versions.last.entry.security_alert.count %>
-                        <% if alerts > 0 %>
-                          <a class="ui red circular label">
-                            <%= alerts %>
-                          </a>
-                        <% end %>
+                      <% if project_versions.last && project_versions.last.entry.security_alert %>
+                        <i class="warning sign icon red"></i>
                       <% end %>
                     </td>
                     <td>
@@ -103,7 +98,7 @@
                 <td><%= l entry.published %></td>
                 <td>
                   <% project_versions = entry.plugin.project_versions.updatable_projects(entry.version) %>
-                  <% project_versions.limit(3).each do |v| %>
+                  <% project_versions.includes(:project).limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
                       <div class="ui small label">
                         <%= v.project.name %> <%= v.installed %>
@@ -114,13 +109,8 @@
                 </td>
                 <td>
                   <%#　更新可能でもっとも古いバージョン project_versions.last %>
-                  <% if project_versions.last %>
-                    <% alerts = project_versions.last.entry.security_alert.count %>
-                    <% if alerts > 0 %>
-                      <a class="ui red circular label">
-                        <%= alerts %>
-                      </a>
-                    <% end %>
+                  <% if project_versions.last && project_versions.last.entry.security_alert %>
+                    <i class="warning sign icon red"></i>
                   <% end %>
                 </td>
                 <td>

@@ -98,7 +98,7 @@
                   </td>
                   <td><%= dependency.requirements %></td>
                   <td>
-                    <% entry = dependency.latest_version_in_requirements %>
+                    <% entry = dependency.latest_entry %>
                     <%= link_to entry.version, plugin_version_path(plugin_id: entry.  plugin.id, id: entry.id) if entry %>
                   </td>
                   <td class="center aligned">

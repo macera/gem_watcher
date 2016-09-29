@@ -24,6 +24,10 @@
 class Dependency < ApplicationRecord
   belongs_to :entry
   belongs_to :plugin
+
+  has_one :latest_entry_in_requirement
+  has_one :latest_entry, through: :latest_entry_in_requirement,
+                                source: 'entry'
   #belongs_to :plugin_latest_entry, class_name: 'Entry'
 
   #after_create  :create_created_table_log
@@ -33,14 +37,13 @@ class Dependency < ApplicationRecord
   def alert_status
     return false unless plugin
     # requirementsで最新のversionで
-    target_entry = latest_version_in_requirements
-    return false unless target_entry
+    return false unless latest_entry
     plugin.security_advisories.order('date desc').each do |advisory|
-      if advisory.vulnerable?(target_entry.version)
+      if advisory.vulnerable?(latest_entry.version)
         return :error
       end
     end
-    target_entry.dependencies.each do |dependency|
+    latest_entry.dependencies.each do |dependency|
       result = dependency.alert_status
       return :children_error if result
     end

@@ -86,8 +86,6 @@ class Plugin < ActiveRecord::Base
                                 provisional_name: nil,
                                 plugin: plugin).first_or_initialize
           end
-          # TODO: requirementsで最新のentry_idを登録する
-          # dependency.plugin_latest_entry_id = dependency.latest_version_in_requirements.id
 
         else
           # 登録されていないgemの場合
@@ -99,8 +97,21 @@ class Plugin < ActiveRecord::Base
                                 provisional_name: target[0]).first_or_initialize
         end
         dependency.save! if dependency.changed?
+
+        # requirementsで最新のentry_idを登録する
+        if plugin
+          latest = LatestEntryInRequirement.find_or_initialize_by(dependency: dependency, entry: dependency.latest_version_in_requirements)
+          latest.save! if latest.changed?
+        end
+
       end
     end
+
+  rescue => e
+    CronLog.error_create(
+      table_name: 'dependency',
+      content: "メソッド:create_runtime_dependency plugin: #{self && self.name} 詳細:#{e}"
+    )
   end
 
   # Gemの情報を代入する

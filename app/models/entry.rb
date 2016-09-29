@@ -29,7 +29,9 @@ class Entry < ActiveRecord::Base
   has_one    :project_version
   has_many   :dependencies, dependent: :destroy
 
-  #has_many :target_dependencies, class_name: 'Dependency', foreign_key: :plugin_latest_entry_id
+  has_one :latest_entry_in_requirement
+  has_one :target_dependency, through: :latest_entry_in_requirement,
+                                source: 'dependency'
 
   has_many :patched_entries
   has_many :patched_securities, through: :patched_entries,
@@ -79,7 +81,8 @@ class Entry < ActiveRecord::Base
 
   # patchバージョンを正しく並び替える(英字を含む場合もあるため)
   # string_to_arrayは、PostgreSQL9.1からはnullの場合空配列を返す
-  scope :order_by_version, -> { order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST") }
+  # plugin: raindrops, version: 0.12.0.5.g821b
+  scope :order_by_version, -> { order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]', '0.0', 'g'), '.')::float[] ELSE NULL END desc NULLS LAST") }
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
@@ -172,14 +175,15 @@ class Entry < ActiveRecord::Base
   end
 
   def security_alert
-    alerts = []
     # 自身の脆弱性の数
-    alerts += vulnerable_entries
+    return true if vulnerable_entries.present?
     dependencies.each do |dependency|
-      entry = dependency.latest_version_in_requirements
-      alerts += entry.security_alert if entry
+      entry = dependency.latest_entry
+      if entry
+        return true if entry.security_alert.present?
+      end
     end
-    alerts.uniq
+    return false
   end
 
   # versionを返す
