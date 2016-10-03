@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160928085208) do
+ActiveRecord::Schema.define(version: 20161001125819) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -91,6 +91,7 @@ ActiveRecord::Schema.define(version: 20160928085208) do
     t.boolean  "described"
     t.integer  "plugin_id"
     t.integer  "entry_id"
+    t.boolean  "vulnerability"
     t.index ["entry_id"], name: "index_project_versions_on_entry_id", using: :btree
     t.index ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
     t.index ["project_id"], name: "index_project_versions_on_project_id", using: :btree
