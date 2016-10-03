@@ -1,5 +1,2 @@
 $ ->
-  $('.accordion .header').on 'click', ->
-    $(this).next().slideToggle()
-    return
-  return
+  $('.ui.accordion').accordion()
