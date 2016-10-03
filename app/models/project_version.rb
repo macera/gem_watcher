@@ -77,7 +77,7 @@ class ProjectVersion < ActiveRecord::Base
     where(["
       (major_version < ?) OR
       (major_version = ? AND minor_version < ?) OR
-      (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
+      (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
      major,
      major, minor,
      major, minor, patch
@@ -90,7 +90,7 @@ class ProjectVersion < ActiveRecord::Base
     minor = v[1].to_i
     patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
     where(["
-      major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?)",
+      major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?)",
      major, minor, patch
    ])
   }
@@ -102,7 +102,7 @@ class ProjectVersion < ActiveRecord::Base
     patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
     where(["
     (major_version = ? AND minor_version < ?) OR
-    (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
+    (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
     major, minor,
     major, minor, patch
     ])
@@ -121,7 +121,7 @@ class ProjectVersion < ActiveRecord::Base
   }
 
   scope :order_by_version, -> {
-    order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0'), '.')::float[] ELSE NULL END desc NULLS LAST")
+    order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[] ELSE NULL END desc NULLS LAST")
   }
 
   def security_check

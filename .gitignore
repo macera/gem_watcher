@@ -17,6 +17,7 @@ capybara-*.html
 /tmp/pids
 /tmp/sessions
 /tmp/sokets
+/tmp/miniprofiler
 
 /tmp/projects/development/*
 !.gitkeep
