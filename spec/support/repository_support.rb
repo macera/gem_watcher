@@ -31,7 +31,7 @@ module RepositorySupport
 
   def security_advisory_create(path, plugin)
     data = YAML.load_file(path)
-    create(:security_advisory,
+    advisory = create(:security_advisory,
       path:                path,
       framework:           data['framework'],
       cve:                 data['cve'],
@@ -44,6 +44,25 @@ module RepositorySupport
       patched_versions:    (data['patched_versions'] || []).join(':'),
       plugin:              plugin
     )
+
+    # 中間テーブル作成
+    plugin.entries.each do |entry|
+      if advisory.vulnerable?(entry.version)
+        advisory.vulnerable_entries.create(entry: entry)
+      end
+    end
+
+    return advisory
+  end
+
+  # ProjectVersionに脆弱性フラグを登録する
+  def update_vulnerable_versions(project_version)
+    if project_version.security_alert?
+      project_version.vulnerability = true
+    else
+      project_version.vulnerability = false
+    end
+    project_version.save if project_version.changed?
   end
 
 end

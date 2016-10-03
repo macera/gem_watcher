@@ -38,6 +38,9 @@ describe FeedsController do
         create(:security_advisory, plugin: plugin)
       end
       it "flash[:alert]にメッセージが含まれること" do
+
+        pending 'flashを一旦表示しないようにしている'
+
         get :index
         expect(flash[:alert]).to be_present
       end

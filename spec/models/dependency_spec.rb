@@ -38,7 +38,7 @@ RSpec.describe Dependency, type: :model do
     end
     context '自身のgemに脆弱性がある場合' do
       before do
-        create(:security_advisory, plugin: @plugin2, patched_versions: ">= 5.0.0.1", unaffected_versions: nil)
+        advisory = create(:security_advisory, plugin: @plugin2, patched_versions: ">= 5.0.0.1", unaffected_versions: nil)
       end
       it ':errorを返却すること' do
         expect(@dependency1.alert_status).to eq :error
@@ -46,7 +46,7 @@ RSpec.describe Dependency, type: :model do
     end
     context '自身のgemのdependency gemに脆弱性がある場合' do
       before do
-        create(:security_advisory, plugin: @plugin3, patched_versions: ">= 1.0", unaffected_versions: nil)
+        advisory = create(:security_advisory, plugin: @plugin3, patched_versions: ">= 1.0", unaffected_versions: nil)
       end
       it ':errorを返却すること' do
         expect(@dependency1.alert_status).to eq :children_error

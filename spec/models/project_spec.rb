@@ -443,16 +443,24 @@ EOS
       before do
         @project = create(:project)
         @plugin = create(:plugin, name: 'paperclip')
-        @entry = create(:entry, plugin: @plugin,
+        @entry1 = create(:entry, plugin: @plugin,
+                                title: "paperclip (3.5.2)",
                                 major_version: 3,
                                 minor_version: 5,
+                                patch_version: 2
+                        )
+        @entry2 = create(:entry, plugin: @plugin,
+                                title: "paperclip (4.2.2)",
+                                major_version: 4,
+                                minor_version: 2,
                                 patch_version: 2
                         )
         security_advisory_create(path, @plugin)
       end
       context '脆弱性がある場合' do
         before do
-          create(:version, installed: '3.5.2', project: @project, entry: @entry, plugin: @plugin)
+          version = create(:version, installed: '3.5.2', project: @project, entry: @entry1, plugin: @plugin)
+          update_vulnerable_versions(version)
         end
         it 'trueを返却すること' do
           expect(@project.has_security_alert?).to eq true
@@ -460,7 +468,8 @@ EOS
       end
       context '脆弱性がない場合' do
         before do
-          create(:version, installed: '4.2.2', project: @project, entry: @entry, plugin: @plugin)
+          version = create(:version, installed: '4.2.2', project: @project, entry: @entry2, plugin: @plugin)
+          update_vulnerable_versions(version)
         end
         it 'falseを返却すること' do
           expect(@project.has_security_alert?).to eq false

@@ -19,7 +19,7 @@ class Plugin < ActiveRecord::Base
   has_many :security_entries, dependent: :destroy
   has_many :security_advisories, dependent: :destroy
 
-  has_one :dependency, dependent: :nullify
+  has_many :dependencies, dependent: :nullify
 
   validates :name, presence: true
   # validates :name, length: { maximum: 50 }, allow_blank: true
