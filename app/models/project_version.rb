@@ -16,6 +16,7 @@
 #  described     :boolean
 #  plugin_id     :integer
 #  entry_id      :integer
+#  vulnerability :boolean
 #
 # Indexes
 #
@@ -124,19 +125,48 @@ class ProjectVersion < ActiveRecord::Base
     order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[] ELSE NULL END desc NULLS LAST")
   }
 
+  def self.update_vulnerable_versions
+    ProjectVersion.only_gemfile.each do |project_version|
+      begin
+        if project_version.security_alert?
+          project_version.vulnerability = true
+        else
+          project_version.vulnerability = false
+        end
+        project_version.save! if project_version.changed?
+      rescue => e
+        CronLog.error_create(
+          table_name: self.class.to_s.underscore,
+          content: "メソッド:update_vulnerable_versions 詳細:#{e}"
+        )
+      end
+    end
+  end
+
   def security_check
-    if SecurityAdvisory.check_gem(plugin, installed).present?
+    if entry.vulnerable_entries.present?
       return [self]
     end
     alert_versions = []
-    entry.dependencies.each do |dependency|
-      if dependency.plugin
-        project_version = project.project_versions.joins(:plugin).where('plugins.name' => dependency.plugin.name).first
+    entry.dependencies.joins(:plugin).includes(:plugin).each do |dependency|
+        project_version = project.project_versions.joins(:plugin).where('plugins.id' => dependency.plugin.id).first
         result = project_version.security_check if project_version
         alert_versions << result.first if result.present?
-      end
     end
     return alert_versions.uniq
+  end
+
+  # このバージョン(とそのdependenciesのバージョン)に脆弱性があるか
+  def security_alert?
+    if entry.vulnerable_entries.present?
+      return true
+    end
+    entry.dependencies.joins(:plugin).includes(:plugin).each do |dependency|
+      project_version = project.project_versions.joins(:plugin).where('plugins.id' => dependency.plugin.id).first
+      result = project_version.security_alert? if project_version
+      return true if result
+    end
+    return false
   end
 
   private

@@ -26,8 +26,10 @@ every 8.hours do
   runner "SecurityAdvisory.source_update"
   # セキュリティ情報取得
   runner "SecurityAdvisory.all_update"
+  # ProjectVersionに脆弱性フラグを登録する
+  runner "ProjectVersion.update_vulnerable_versions"
   # セキュリティfeed収集
-  rake "security_feed:generate"
+  #rake "security_feed:generate"
 end
 
 #

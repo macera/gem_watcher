@@ -174,16 +174,43 @@ class Entry < ActiveRecord::Base
     result
   end
 
-  def security_alert
-    # 自身の脆弱性の数
-    return true if vulnerable_entries.present?
-    dependencies.each do |dependency|
-      entry = dependency.latest_entry
-      if entry
-        return true if entry.security_alert.present?
-      end
+  # def all_security_alert
+  #   return true if vulnerable_entries.present?
+
+  #   # このentryのdependenciesのすべてのentryを取り出す
+  #   entries = all_entry
+  #   if entries.present?
+  #     result = Entry.where(id: entries).joins(:vulnerable_entries).includes(:vulnerable_entries).select('vulnerable_entries.id')
+  #     return result.present?
+  #   end
+  # end
+
+  # def all_entry
+  #   entries = []
+  #   dependencies.joins(:latest_entry).includes(:latest_entry).select('entries.id').each do |dependency|
+  #     entry = dependency.latest_entry
+  #     #if entry
+  #       entries << entry.id
+  #       entries += entry.all_entry
+  #     #end
+  #   end
+  #   entries.uniq
+  # end
+
+  # 自身の脆弱性の有無を返す
+  # def security_alert
+  #   return true if vulnerable_entries.present?
+  #   dependencies.joins(:latest_entry).includes(:latest_entry).select('entries.id').each do |dependency|
+  #     entry = dependency.latest_entry
+  #     return true if entry.security_alert
+  #   end
+  #   return false
+  # end
+
+  def updatable_project_versions
+    ActiveRecord::Base.benchmark("** updatable_versions #{title}**") do
+      plugin.project_versions.updatable_projects(version)
     end
-    return false
   end
 
   # versionを返す

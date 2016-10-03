@@ -27,7 +27,7 @@
                 </tr>
               </thead>
               <tbody>
-                <% @rails_entries.includes(:dependencies).each do |entry| %>
+                <% @rails_entries.each do |entry| %>
                   <tr>
                     <td>
                       <%= new_label(entry.published) %>
@@ -47,9 +47,11 @@
                       <%= show_more(versions.count, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id)) %>
                     </td>
                     <td>
-                      <%#更新可能でもっとも古いバージョン project_versions.last %>
-                      <% if project_versions.last && project_versions.last.entry.security_alert %>
-                        <i class="warning sign icon red"></i>
+                      <% last_version = project_versions.last %>
+                      <% if last_version %>
+                        <% if last_version.vulnerability %>
+                          <i class="warning sign icon red"></i>
+                        <% end %>
                       <% end %>
                     </td>
                     <td>
@@ -58,6 +60,7 @@
                         class: "ui small button" %>
                     </td>
                   </tr>
+
                 <% end %>
               </tbody>
             </table>
@@ -89,7 +92,8 @@
             </tr>
           </thead>
           <tbody>
-            <% @entries.each do |entry| %>
+            <% @entries.includes(:dependencies).includes(:vulnerable_entries).each do |entry| %>
+              <% project_versions = entry.updatable_project_versions %>
               <tr>
                 <td>
                   <%= new_label(entry.published) %>
@@ -97,7 +101,6 @@
                 </td>
                 <td><%= l entry.published %></td>
                 <td>
-                  <% project_versions = entry.plugin.project_versions.updatable_projects(entry.version) %>
                   <% project_versions.includes(:project).limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
                       <div class="ui small label">
@@ -109,8 +112,11 @@
                 </td>
                 <td>
                   <%#　更新可能でもっとも古いバージョン project_versions.last %>
-                  <% if project_versions.last && project_versions.last.entry.security_alert %>
-                    <i class="warning sign icon red"></i>
+                  <% last_version = project_versions.last %>
+                  <% if last_version %>
+                    <% if last_version.vulnerability %>
+                      <i class="warning sign icon red"></i>
+                    <% end %>
                   <% end %>
                 </td>
                 <td>
@@ -119,6 +125,7 @@
                       class: "ui small button" %>
                 </td>
               </tr>
+
             <% end %>
           </tbody>
         </table>

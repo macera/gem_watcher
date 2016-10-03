@@ -19,7 +19,7 @@ class Plugin < ActiveRecord::Base
   has_many :security_entries, dependent: :destroy
   has_many :security_advisories, dependent: :destroy
 
-  has_many :dependencies, dependent: :nullify
+  has_one :dependency, dependent: :nullify
 
   validates :name, presence: true
   # validates :name, length: { maximum: 50 }, allow_blank: true
@@ -74,14 +74,14 @@ class Plugin < ActiveRecord::Base
         plugin = Plugin.find_by(name: target[0])
         if plugin
           # 存在しなかったpluginが後から登録された場合
-          dependency = entry.dependencies.where(
+          dep = entry.dependencies.where(
                                 requirements: target[1],
                                 provisional_name: plugin.name).first
-          if dependency
-            dependency.provisional_name = nil
-            dependency.plugin = plugin
+          if dep
+            dep.provisional_name = nil
+            dep.plugin = plugin
           else
-            dependency = entry.dependencies.where(
+            dep = entry.dependencies.where(
                                 requirements: target[1],
                                 provisional_name: nil,
                                 plugin: plugin).first_or_initialize
@@ -92,15 +92,17 @@ class Plugin < ActiveRecord::Base
 
           # 存在したpluginが後から削除された場合は、dependencyも自動的に削除されるが、
           # 再びこれを実行すると登録される。
-          dependency = entry.dependencies.where(
+          dep = entry.dependencies.where(
                                 requirements: target[1],
                                 provisional_name: target[0]).first_or_initialize
         end
-        dependency.save! if dependency.changed?
+        dep.save! if dep.changed?
 
-        # requirementsで最新のentry_idを登録する
         if plugin
-          latest = LatestEntryInRequirement.find_or_initialize_by(dependency: dependency, entry: dependency.latest_version_in_requirements)
+          # latest_entry_in_requirementとdependencyは1対1の関係
+          latest = LatestEntryInRequirement.find_or_initialize_by(dependency: dep)
+          # requirementsで最新のentry_idを登録する
+          latest.entry = dep.latest_version_in_requirements
           latest.save! if latest.changed?
         end
 

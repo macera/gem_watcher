@@ -418,10 +418,13 @@ class Project < ActiveRecord::Base
 
   # このプロジェクトのgemに脆弱性があるか
   def has_security_alert?
-    project_versions.each do |version|
-      return true if SecurityAdvisory.check_gem(version.plugin, version.installed).present?
-    end
-    return false
+    result = project_versions.where(vulnerability: true)
+    result.present?
+
+    # project_versions.joins(:entry).includes(:entry).each do |version|
+    #   return true if version.entry.vulnerable_entries.present?
+    # end
+    # return false
   end
 
   private
