@@ -46,7 +46,7 @@
   <div class="ten wide column">
 
     <div class="ui segment red">
-      <h2><i class="warning sign icon red"></i>脆弱性情報</h2>
+      <h2><i class="warning sign icon red"></i>脆弱性(未修正)情報</h2>
 
       <div class="ui relaxed list">
         <% if @vulnerable_securities.empty? %>
@@ -59,7 +59,7 @@
     </div>
 
     <div class="ui segment green">
-      <h2><i class="warning sign icon green"></i>脆弱性修正情報</h2>
+      <h2><i class="warning sign icon green"></i>脆弱性(修正済み)情報</h2>
 
       <div class="ui relaxed list">
         <% if @patched_securities.empty? %>
