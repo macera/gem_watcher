@@ -2,6 +2,7 @@
 # TODO: Gemfileのないプロジェクトをseedとかで一気に登録するようにしたい
 
 # GitLabからprojectを取得し、projectsテーブルを作成する
+SecurityAdvisory.destroy_all
 Dependency.destroy_all
 p '*0'
 Project.destroy_all
@@ -17,4 +18,5 @@ p '*5'
 SecurityAdvisory.source_update
 p '*6'
 SecurityAdvisory.all_update
-
+p '*7'
+ProjectVersion.update_vulnerable_versions

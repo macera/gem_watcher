@@ -2,18 +2,19 @@
 #
 # Table name: entries
 #
-#  id            :integer          not null, primary key
-#  title         :string
-#  published     :datetime
-#  content       :text
-#  url           :string
-#  author        :string
-#  plugin_id     :integer
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  major_version :integer
-#  minor_version :integer
-#  patch_version :string
+#  id               :integer          not null, primary key
+#  title            :string
+#  published        :datetime
+#  content          :text
+#  url              :string
+#  author           :string
+#  plugin_id        :integer
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  major_version    :integer
+#  minor_version    :integer
+#  patch_version    :integer
+#  revision_version :string
 #
 # Indexes
 #
@@ -25,6 +26,8 @@
 #
 
 class Entry < ActiveRecord::Base
+  include DisplayVersion
+
   belongs_to :plugin
   has_one    :project_version
   has_many   :dependencies, dependent: :destroy
@@ -41,6 +44,11 @@ class Entry < ActiveRecord::Base
   has_many :vulnerable_securities, through: :vulnerable_entries,
                                    source: 'security_advisory'
 
+  validates :major_version, numericality: { only_integer: true }, allow_blank: true
+  validates :minor_version, numericality: { only_integer: true }, allow_blank: true
+  validates :patch_version, numericality: { only_integer: true }, allow_blank: true
+
+  before_validation :set_versions
 
   #after_destroy :create_destroyed_table_log
 
@@ -76,13 +84,18 @@ class Entry < ActiveRecord::Base
 
   # rails以外のgem リリースタイトル一覧 / Gemfileに書かれているgemのみ
   scope :newest_plugins, -> {
-    joins(:plugin).merge(Plugin.described).distinct.where.not('plugins.name' => 'rails').where('published' => Entry.select('max(published), plugin_id').group('plugin_id').pluck('max(published)')).order('entries.published desc')
+    joins(:plugin).includes(:plugin).merge(Plugin.described)
+    .distinct.where.not('plugins.name' => 'rails')
+    .where('published' => Entry.select('max(published), plugin_id')
+                         .group('plugin_id').pluck('max(published)')).order('entries.published desc')
   }
 
   # patchバージョンを正しく並び替える(英字を含む場合もあるため)
   # string_to_arrayは、PostgreSQL9.1からはnullの場合空配列を返す
   # plugin: raindrops, version: 0.12.0.5.g821b
-  scope :order_by_version, -> { order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]', '0.0', 'g'), '.')::float[] ELSE NULL END desc NULLS LAST") }
+  scope :order_by_version, -> {
+    order("major_version desc, minor_version desc, patch_version desc, CASE WHEN revision_version IS NOT null then regexp_replace(revision_version, '[a-zA-Z]+', '0') ELSE NULL END desc NULLS LAST")
+  }
 
   # 許可するカラムの名前をオーバーライドする
   def self.ransackable_attributes(auth_object = nil)
@@ -94,15 +107,15 @@ class Entry < ActiveRecord::Base
     gem_info = Gems.info(plugin.name)
     return unless gem_info.is_a?(Hash)
 
+    # TODO: RSSだとprereleaseフラグが取れないので、APIの方で取得する
     path = URI.join("#{Settings.feeds.rubygem}#{plugin.name}/versions.atom")
     content = Feedjira::Feed.fetch_and_parse(path.to_s)
 
     content.entries.each do |entry|
       version = version_from_feed(entry.title)
-
       # beta版、ruby以外のplatform等は除く 例: 2.0rc0 5.0.0.rc1
       next unless version
-      next if version.join('.') =~ /-|beta|rc|racecar|pre/
+      next if version.join('.') =~ /-|alpha|beta|rc|racecar|pre/   #|b\d
 
       local_entry = plugin.entries.where(title: entry.title).first_or_initialize
       local_entry.update_attributes!(
@@ -110,11 +123,13 @@ class Entry < ActiveRecord::Base
         author: entry.author,
         url: entry.entry_id,
         published: entry.published,
-        major_version: version[0],
-        minor_version: version[1],
-        patch_version: version[2]
+        # major_version: v[0],
+        # minor_version: v[1],
+        # patch_version: v[2],
+        # revision_version: v[3],
       )
     end
+  rescue => e
   rescue => e
     CronLog.error_create(
       table_name: 'entry',
@@ -124,8 +139,12 @@ class Entry < ActiveRecord::Base
 
   # titleからversionを取り出す(配列)
   def self.version_from_feed(title)
+    # 0.0.0.0
+    version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\d+)\.(\S+)\)/).first
     # 0.0.0
-    version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
+    unless version
+      version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
+    end
     # 0.0
     unless version
       version = title.scan(/\S+\s\((\d+)\.(\d+)\)/).first
@@ -137,7 +156,11 @@ class Entry < ActiveRecord::Base
     version
   end
 
-  def project_versions_by_series(entries)
+  # def self.sort_by_gem_version(versions)
+  #   versions.sort {|a, b| Gem::Version.new(b.version) <=> Gem::Version.new(a.version) }
+  # end
+
+  def updatable_project_versions_by_series(entries)
     # 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか?
     less_minor_version = less_minor_version?(entries)
     # 最も小さいメジャーバージョンか？
@@ -152,7 +175,6 @@ class Entry < ActiveRecord::Base
       end
     end
   end
-
 
   def less_minor_version?(entries)
     result = false
@@ -207,21 +229,52 @@ class Entry < ActiveRecord::Base
   #   return false
   # end
 
-  def updatable_project_versions
-    ActiveRecord::Base.benchmark("** updatable_versions #{title}**") do
-      plugin.project_versions.updatable_projects(version)
-    end
-  end
-
   # versionを返す
   def version
-    if minor_version && patch_version
+    if minor_version && patch_version && revision_version
+      "#{major_version.to_s}.#{minor_version.to_s}.#{patch_version}.#{revision_version}"
+    elsif minor_version && revision_version
+      # 英字入りバージョン対策
+      "#{major_version.to_s}.#{minor_version.to_s}.#{revision_version}"
+    elsif minor_version && patch_version
       "#{major_version.to_s}.#{minor_version.to_s}.#{patch_version}"
     elsif minor_version
       "#{major_version.to_s}.#{minor_version.to_s}"
     else
       "#{major_version.to_s}"
     end
+  end
+
+  private
+    def set_versions
+      version = version_from_feed
+      if version.present?
+        v = skip_alphabetic_version_to_next(version)
+        self.major_version = v[0]
+        self.minor_version = v[1]
+        self.patch_version = v[2]
+        self.revision_version = v[3]
+      end
+    end
+
+      # titleからversionを取り出す(配列)
+  def version_from_feed
+    return if title.blank?
+    # 0.0.0.0
+    version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\d+)\.(\S+)\)/).first
+    # 0.0.0
+    unless version
+      version = title.scan(/\S+\s\((\d+)\.(\d+)\.(\S+)\)/).first
+    end
+    # 0.0
+    unless version
+      version = title.scan(/\S+\s\((\d+)\.(\d+)\)/).first
+    end
+    # 0
+    unless version
+      version = title.scan(/\S+\s\((\d+)\)/).first
+    end
+    version
   end
 
   # 12時間以内のセキュリティ情報の数

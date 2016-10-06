@@ -37,7 +37,7 @@
       </p>
       <p>
         <%= link_to @version.url, target: '_blank' do %>
-          <i class="external icon"></i>Version情報を詳しく見る(RubyGems.org)
+          <i class="external icon"></i>バージョン情報を詳しく見る(RubyGems.org)
         <% end %>
       </p>
     </div>
@@ -82,8 +82,8 @@
               <tr>
                 <th>gem名</th>
                 <th>必要条件</th>
-                <th>最新バージョン(必要条件下)</th>
-                <th>脆弱性</th>
+                <th>最新バージョン<br />(必要条件下)</th>
+                <th>プロジェクトバージョン<br />(最古)</th>
               </tr>
             </thead>
             <tbody>
@@ -99,15 +99,31 @@
                   <td><%= dependency.requirements %></td>
                   <td>
                     <% entry = dependency.latest_entry %>
-                    <%= link_to entry.version, plugin_version_path(plugin_id: entry.  plugin.id, id: entry.id) if entry %>
+                    <% if entry %>
+                      <% color = dependency.alert_status %>
+                      <div class="ui small label <%= color %>">
+                        <%= link_to entry.version, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id) if entry %>
+                      </div>
+                    <% end %>
                   </td>
-                  <td class="center aligned">
-                    <%= alert_icon(dependency.alert_status) %>
+                  <td>
+                    <% if dependency.plugin %>
+                      <% version = dependency.plugin.project_versions.by_parent_version(@version).last %>
+                      <% if version %>
+                        <% color = version.alert_status %>
+                        <div class="ui small label <%= color %>">
+                          <%= link_to "#{version.project.name} #{version.installed}", plugin_version_path(plugin_id: version.plugin.id, id: version.entry.id) %>
+                        </div>
+                      <% end %>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>
             </tbody>
           </table>
+          <br />
+          ※ <div class="ui mini label red">脆弱性(未修正)情報あり</div><div class="ui mini label yellow">対象のdependencies配下で脆弱性(未修正)情報あり</div>
+
         <% end %>
       </div>
     </div>

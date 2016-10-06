@@ -34,10 +34,10 @@
 class SecurityAdvisory < ApplicationRecord
   belongs_to :plugin
 
-  has_many :patched_entries
+  has_many :patched_entries, dependent: :destroy
   #has_many :entries, through: :patched_entries
 
-  has_many :vulnerable_entries
+  has_many :vulnerable_entries, dependent: :destroy
   #has_many :entries, through: :vulnerable_entries
 
   after_create  :create_created_table_log

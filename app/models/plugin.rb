@@ -45,6 +45,10 @@ class Plugin < ActiveRecord::Base
     joins(:project_versions).merge(ProjectVersion.only_gemfile)
   }
 
+  scope :vulnerable_project, -> {
+    joins(:project_versions).merge(ProjectVersion.vulnerable)
+  }
+
   #scope :production, -> { joins(:project_versions).merge(ProjectVersion.production).uniq }
 
   # 許可するカラムの名前をオーバーライドする

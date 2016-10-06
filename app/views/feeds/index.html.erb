@@ -22,8 +22,7 @@
                 <th>リリースタイトル(Version)</th>
                 <th>更新日時</th>
                 <th>更新可能なプロジェクト</th>
-                <th>プロジェクト脆弱性の有無</th>
-                <th></th>
+                <th>プロジェクトの脆弱性(未修正)情報</th>
                 </tr>
               </thead>
               <tbody>
@@ -31,36 +30,36 @@
                   <tr>
                     <td>
                       <%= new_label(entry.published) %>
-                      <strong><%= entry.title %></strong>
+                      <%= link_to entry.title,
+                        plugin_version_path(plugin_id: entry.plugin.id, id: entry.id) %>
                     </td>
-                    <td><%= l entry.published %></td>
                     <td>
-                      <% versions = entry.project_versions_by_series(@rails_entries) %>
+                      <%= l entry.published %>
+                    </td>
+                    <td>
+                      <%# 更新可能なプロジェクトバージョンを取得 %>
+                      <% versions = entry.updatable_project_versions_by_series(@rails_entries) %>
                       <% project_versions = versions.order_by_version %>
                       <% project_versions.includes(:project).limit(3).each do |v| %>
                         <%= link_to(project_path(v.project.id), class: 'item') do %>
-                          <div class="ui small label">
+                          <div class="ui mini label">
                             <%= v.project.name %> <%= v.installed %>
                           </div>
                         <% end %>
                       <% end %>
+                      <%# 4件以上あればmoreボタン %>
                       <%= show_more(versions.count, plugin_version_path(plugin_id: entry.plugin.id, id: entry.id)) %>
                     </td>
                     <td>
-                      <% last_version = project_versions.last %>
-                      <% if last_version %>
-                        <% if last_version.vulnerability %>
-                          <i class="warning sign icon red"></i>
+                      <%# 脆弱性のある系列ごとのプロジェクトバージョン(重複なし)を取得 %>
+                      <% alert_versions = versions.uniq_vulnerable_versions %>
+                      <% alert_versions.each do |version|%>
+                        <%= link_to plugin_version_path(plugin_id: entry.plugin.id, id: version.entry_id), class: 'ui mini label red' do %>
+                            <i class="warning sign icon"></i> <%= version.installed %>
                         <% end %>
                       <% end %>
                     </td>
-                    <td>
-                      <%= link_to '詳細情報',
-                        plugin_version_path(plugin_id: entry.plugin.id, id: entry.id),
-                        class: "ui small button" %>
-                    </td>
                   </tr>
-
                 <% end %>
               </tbody>
             </table>
@@ -74,6 +73,9 @@
             <div class="inline fields">
               <div class="field">
                 <%= f.text_field :plugin_name_start, placeholder: 'Gem Name', class: '' %>
+
+                <%= f.check_box :plugin_project_versions_vulnerability_eq, class: 'ui' %>
+                <%= f.label :plugin_project_versions_vulnerability_eq, 'プロジェクト脆弱性有' %>
               </div>
               <%= f.submit '検索', class: "ui olive button" %>
               <%= link_to 'クリア', feeds_path, class: 'ui button' %>
@@ -87,42 +89,43 @@
             <th>リリースタイトル(Version)</th>
             <th>更新日時</th>
             <th>更新可能なプロジェクト</th>
-            <th>プロジェクトの脆弱性情報</th>
-            <th></th>
+            <th>プロジェクトの脆弱性(未修正)情報</th>
             </tr>
           </thead>
           <tbody>
-            <% @entries.includes(:dependencies).includes(:vulnerable_entries).each do |entry| %>
-              <% project_versions = entry.updatable_project_versions %>
+            <% @entries.each do |entry| %>
               <tr>
                 <td>
                   <%= new_label(entry.published) %>
-                  <strong><%= entry.title %></strong>
+                  <%= link_to entry.title,
+                      plugin_version_path(plugin_id: entry.plugin.id, id: entry.id) %>
                 </td>
-                <td><%= l entry.published %></td>
                 <td>
+                  <%= l entry.published %>
+                </td>
+                <td>
+                  <%# 更新可能なプロジェクトバージョンを取得 %>
+                  <% project_versions = entry.plugin.project_versions.updatable %>
                   <% project_versions.includes(:project).limit(3).each do |v| %>
                     <%= link_to(project_path(v.project.id), class: 'item') do %>
-                      <div class="ui small label">
+                      <div class="ui mini label">
                         <%= v.project.name %> <%= v.installed %>
                       </div>
                     <% end %>
                   <% end %>
+                  <%# 4件以上あればmoreボタン %>
                   <%= show_more(project_versions.count, plugin_path(entry.plugin.id)) %>
                 </td>
                 <td>
-                  <%#　更新可能でもっとも古いバージョン project_versions.last %>
-                  <% last_version = project_versions.last %>
-                  <% if last_version %>
-                    <% if last_version.vulnerability %>
-                      <i class="warning sign icon red"></i>
+                  <%# 脆弱性のあるプロジェクトバージョン(重複なし)を取得 %>
+                  <% alert_versions = entry.plugin.project_versions.uniq_vulnerable_versions %>
+                  <% alert_versions.each do |version|%>
+                    <% if version %>
+                      <%= link_to plugin_version_path(plugin_id: entry.plugin.id, id: version.entry.id), class: 'ui mini label red' do %>
+                        <i class="warning sign icon"></i> <%= version.installed %>
+                      <% end %>
                     <% end %>
                   <% end %>
-                </td>
-                <td>
-                  <%= link_to '詳細情報',
-                      plugin_version_path(plugin_id: entry.plugin.id, id: entry.id),
-                      class: "ui small button" %>
                 </td>
               </tr>
 
@@ -132,7 +135,6 @@
 
         <p><%= page_entries_info @entries %></p>
         <%= paginate @entries %>
-
       </div>
     </div>
   </div>

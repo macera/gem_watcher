@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161001125819) do
+ActiveRecord::Schema.define(version: 20161004070147) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -41,11 +41,12 @@ ActiveRecord::Schema.define(version: 20161001125819) do
     t.string   "url"
     t.string   "author"
     t.integer  "plugin_id"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
     t.integer  "major_version"
     t.integer  "minor_version"
-    t.string   "patch_version"
+    t.integer  "patch_version"
+    t.string   "revision_version"
     t.index ["plugin_id"], name: "index_entries_on_plugin_id", using: :btree
   end
 
@@ -82,16 +83,17 @@ ActiveRecord::Schema.define(version: 20161001125819) do
     t.string   "installed"
     t.string   "pre"
     t.integer  "project_id"
-    t.datetime "created_at",    null: false
-    t.datetime "updated_at",    null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
     t.string   "requested"
     t.integer  "major_version"
     t.integer  "minor_version"
-    t.string   "patch_version"
+    t.integer  "patch_version"
     t.boolean  "described"
     t.integer  "plugin_id"
     t.integer  "entry_id"
     t.boolean  "vulnerability"
+    t.string   "revision_version"
     t.index ["entry_id"], name: "index_project_versions_on_entry_id", using: :btree
     t.index ["plugin_id"], name: "index_project_versions_on_plugin_id", using: :btree
     t.index ["project_id"], name: "index_project_versions_on_project_id", using: :btree

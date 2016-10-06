@@ -255,7 +255,8 @@ class Project < ActiveRecord::Base
             version_value = split_version(value[1])
             entry = new_plugin.entries.where(major_version: version_value[0],
                                              minor_version: version_value[1],
-                                             patch_version: version_value[2]
+                                             patch_version: version_value[2],
+                                             revision_version: version_value[3]
             ).first
 
             project_versions.create!(installed: value[1],
@@ -307,7 +308,8 @@ class Project < ActiveRecord::Base
               version_value = split_version(value[1])
               entry = new_plugin.entries.where(major_version: version_value[0],
                                                minor_version: version_value[1],
-                                               patch_version: version_value[2]
+                                               patch_version: version_value[2],
+                                               revision_version: version_value[3]
               ).first
 
               project_versions.create!(installed: value[1],

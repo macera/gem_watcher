@@ -6,7 +6,7 @@ class FeedsController < ApplicationController
     @rails_entries = Entry.rails_entries
 
     @search = Entry.newest_plugins.ransack(params[:q])
-    @entries = @search.result.order('published desc').page(params[:page])
+    @entries = @search.result.page(params[:page])
 
     # alert = Project.joins(:project_versions).where('project_versions.vulnerability' => true)
     # if alert.present?

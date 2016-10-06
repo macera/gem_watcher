@@ -2,21 +2,22 @@
 #
 # Table name: project_versions
 #
-#  id            :integer          not null, primary key
-#  newest        :string
-#  installed     :string
-#  pre           :string
-#  project_id    :integer
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  requested     :string
-#  major_version :integer
-#  minor_version :integer
-#  patch_version :string
-#  described     :boolean
-#  plugin_id     :integer
-#  entry_id      :integer
-#  vulnerability :boolean
+#  id               :integer          not null, primary key
+#  newest           :string
+#  installed        :string
+#  pre              :string
+#  project_id       :integer
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  requested        :string
+#  major_version    :integer
+#  minor_version    :integer
+#  patch_version    :integer
+#  described        :boolean
+#  plugin_id        :integer
+#  entry_id         :integer
+#  vulnerability    :boolean
+#  revision_version :string
 #
 # Indexes
 #
@@ -66,65 +67,87 @@ class ProjectVersion < ActiveRecord::Base
   scope :updated_versions, -> { where(newest: nil) }
   scope :only_gemfile,     -> { where(described: true) }
   scope :no_gemfile,       -> { where(described: false) }
-  scope :updatable_projects, ->(version) {
-    less_than(version).order_by_version
+  scope :vulnerable,       -> { where(vulnerability: true) }
+  scope :updatable, -> {
+    only_gemfile.newest_versions.order_by_version
+    #where(described: true).less_than(version).order_by_version
   }
   # 引数のバージョンより低いものを取得する
-  scope :less_than,       ->(version) {
+  # scope :less_than, ->(version) {
+  #   v = split_version(version)
+  #   major = v[0].to_i
+  #   minor = v[1].to_i
+  #   patch = v[2].to_i
+  #   revision = v[3].to_s
+  #   where(["
+  #     (major_version < ?) OR
+  #     (major_version = ? AND minor_version < ?) OR
+  #     (major_version = ? AND minor_version = ? AND patch_version < ?) OR
+  #     (major_version = ? AND minor_version = ? AND patch_version = ? AND COALESCE(revision_version, '') < ?)",
+  #    major,
+  #    major, minor,
+  #    major, minor, patch,
+  #    major, minor, patch, revision
+  #  ])
+  # }
+
+  scope :less_than_patch, ->(version) {
     v = split_version(version)
     major = v[0].to_i
     minor = v[1].to_i
-    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
+    patch = v[2].to_i
+    revision = v[3].to_s
     where(["
-      (major_version < ?) OR
+      (major_version = ? AND minor_version = ? AND patch_version < ?) OR
+      (major_version = ? AND minor_version = ? AND patch_version = ? AND (CASE WHEN revision_version IS NOT null then regexp_replace(revision_version, '[a-zA-Z]+', '0', 'g') ELSE '' END) < ?)",
+     major, minor, patch,
+     major, minor, patch, revision
+   ])
+  }
+
+  scope :less_than_minor, ->(version) {
+    v = split_version(version)
+    major = v[0].to_i
+    minor = v[1].to_i
+    patch = v[2].to_i
+    revision = v[3].to_s
+    where(["
       (major_version = ? AND minor_version < ?) OR
-      (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
-     major,
-     major, minor,
-     major, minor, patch
-   ])
-  }
-
-  scope :less_than_patch,    ->(version) {
-    v = split_version(version)
-    major = v[0].to_i
-    minor = v[1].to_i
-    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
-    where(["
-      major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?)",
-     major, minor, patch
-   ])
-  }
-
-  scope :less_than_minor,    ->(version) {
-    v = split_version(version)
-    major = v[0].to_i
-    minor = v[1].to_i
-    patch = v[2] && v[2].split('.').map(&:to_i).join('.').to_f
-    where(["
-    (major_version = ? AND minor_version < ?) OR
-    (major_version = ? AND minor_version = ? AND (CASE WHEN patch_version IS NOT NULL THEN CAST(array_to_string(string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[], '.') as float) ELSE 0.0 END < ?))",
-    major, minor,
-    major, minor, patch
+      (major_version = ? AND minor_version = ? AND patch_version < ?) OR
+      (major_version = ? AND minor_version = ? AND patch_version = ? AND (CASE WHEN revision_version IS NOT null then regexp_replace(revision_version, '[a-zA-Z]+', '0', 'g') ELSE '' END) < ?)",
+      major, minor,
+      major, minor, patch,
+      major, minor, patch, revision
     ])
   }
 
-  scope :less_than_major,    ->(version) {
+  scope :less_than_major, ->(version) {
     v = split_version(version)
     major = v[0].to_i
     minor = v[1].to_i
     where(["
-    (major_version < ?) OR
-    (major_version = ? AND minor_version < ?)",
-    major,
-    major, minor
+      (major_version < ?) OR
+      (major_version = ? AND minor_version < ?)",
+      major,
+      major, minor
     ])
   }
 
   scope :order_by_version, -> {
-    order("major_version desc, minor_version desc, CASE WHEN patch_version IS NOT null then string_to_array(regexp_replace(patch_version, '[a-z]+', '0.0', 'g'), '.')::float[] ELSE NULL END desc NULLS LAST")
+    order("major_version desc, minor_version desc, patch_version desc, CASE WHEN revision_version IS NOT null then regexp_replace(revision_version, '[a-zA-Z]+', '0') ELSE NULL END desc NULLS LAST")
   }
 
+  # 親gemのバージョンをもとにバージョンを取得する
+  # 引数: 親のentry
+  scope :by_parent_version, ->(entry) {
+    where(project_id: entry.plugin.project_versions.where(entry_id: entry.id).pluck(:project_id)).order_by_version
+  }
+
+  scope :uniq_vulnerable_versions, -> {
+    vulnerable.select(:entry_id, :plugin_id, :installed).uniq
+  }
+
+  # 脆弱性フラグを登録する
   def self.update_vulnerable_versions
     ProjectVersion.only_gemfile.each do |project_version|
       begin
@@ -156,6 +179,18 @@ class ProjectVersion < ActiveRecord::Base
     return alert_versions.uniq
   end
 
+  def alert_status
+    if entry.vulnerable_entries.present?
+      return 'red'
+    end
+    entry.dependencies.joins(:plugin).includes(:plugin).each do |dependency|
+      project_version = project.project_versions.joins(:plugin).where('plugins.id' => dependency.plugin.id).first
+      result = project_version.security_alert? if project_version
+      return 'yellow' if result.present?
+    end
+    return ''
+  end
+
   # このバージョン(とそのdependenciesのバージョン)に脆弱性があるか
   def security_alert?
     if entry.vulnerable_entries.present?
@@ -183,9 +218,12 @@ class ProjectVersion < ActiveRecord::Base
     def set_versions
       return unless installed
       version = split_version(installed)
-      self.major_version = version[0]
-      self.minor_version = version[1]
-      self.patch_version = version[2]
+      # TODO: entryのみに持たせるようにしたい
+      v = skip_alphabetic_version_to_next(version)
+      self.major_version    = v[0]
+      self.minor_version    = v[1]
+      self.patch_version    = v[2]
+      self.revision_version = v[3]
     end
 
     # 画面登録・更新時で登録する項目のセット(cronは除く)
@@ -207,7 +245,8 @@ class ProjectVersion < ActiveRecord::Base
             version = split_version(installed)
             entry = plugin.entries.where(major_version: version[0],
                                          minor_version: version[1],
-                                         patch_version: version[2]
+                                         patch_version: version[2],
+                                         revision_version: version[3]
             ).first
             self.entry = entry
           end

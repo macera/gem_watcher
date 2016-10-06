@@ -25,29 +25,25 @@ class Dependency < ApplicationRecord
   belongs_to :entry
   belongs_to :plugin
 
-  has_one :latest_entry_in_requirement
+  has_one :latest_entry_in_requirement, dependent: :destroy
   has_one :latest_entry, through: :latest_entry_in_requirement,
                                 source: 'entry'
   #belongs_to :plugin_latest_entry, class_name: 'Entry'
 
   #after_create  :create_created_table_log
 
-  # requirements内で最新のversionに脆弱性がある場合:errorを返す。
-  # また、その最新のversionの依存gemも同様にチェックし、1以上あれば:children_errorを返す
+  # requirements内で最新のversionに脆弱性がある場合redを返す。
+  # また、その最新のversionの依存gemも同様にチェックし、1以上あればyellowを返す
   def alert_status
     return false unless plugin
     # requirementsで最新のversionで
     return false unless latest_entry
-    plugin.security_advisories.order('date desc').each do |advisory|
-      if advisory.vulnerable?(latest_entry.version)
-        return :error
-      end
-    end
+    return 'red' if latest_entry.vulnerable_entries.present?
     latest_entry.dependencies.each do |dependency|
       result = dependency.alert_status
-      return :children_error if result
+      return 'yellow' if result.present?
     end
-    return false
+    return ''
   end
 
   # requirements中の最新のversionを取得する
