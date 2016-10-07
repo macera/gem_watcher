@@ -26,7 +26,7 @@
 #
 
 class Entry < ActiveRecord::Base
-  include DisplayVersion
+  include Versioning
 
   belongs_to :plugin
   has_one    :project_version
@@ -161,11 +161,9 @@ class Entry < ActiveRecord::Base
   # end
 
   def updatable_project_versions_by_series(entries)
-    # 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか?
-    less_minor_version = less_minor_version?(entries)
-    # 最も小さいメジャーバージョンか？
+    less_than_minor_version = less_than_minor_version?(entries)
     least_major_version = least_major_version?(entries)
-    if less_minor_version
+    if less_than_minor_version
       return plugin.project_versions.less_than_patch(version)
     else
       if least_major_version
@@ -176,7 +174,9 @@ class Entry < ActiveRecord::Base
     end
   end
 
-  def less_minor_version?(entries)
+  # 同じメジャーバージョンで自分より小さいマイナーバージョンはあるか?
+  # 引数: 各バージョン系列の最新バージョン
+  def less_than_minor_version?(entries)
     result = false
     entries.each do |e|
       if e != self && e.major_version == major_version && e.minor_version < minor_version
@@ -186,6 +186,8 @@ class Entry < ActiveRecord::Base
     result
   end
 
+  # 最も小さいメジャーバージョンか？
+  # 引数: 各バージョン系列の最新バージョン
   def least_major_version?(entries)
     result = true
     entries.each do |e|

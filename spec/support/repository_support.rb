@@ -44,7 +44,6 @@ module RepositorySupport
       patched_versions:    (data['patched_versions'] || []).join(':'),
       plugin:              plugin
     )
-
     # 中間テーブル作成
     plugin.entries.each do |entry|
       if advisory.vulnerable?(entry.version)

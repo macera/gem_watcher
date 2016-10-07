@@ -27,16 +27,8 @@ RSpec.describe Plugin, type: :model do
       context '依存先が登録されているgemの場合' do
         before do
           @plugin = create(:plugin, name: 'kaminari')
-          @entry1 = create(:entry, plugin: @plugin,
-                                  major_version: 0,
-                                  minor_version: 16,
-                                  patch_version: '3'
-          )
-          @entry2 = create(:entry, plugin: @plugin,
-                                  major_version: 0,
-                                  minor_version: 16,
-                                  patch_version: '2'
-          )
+          @entry1 = create(:entry, plugin: @plugin, title: 'kaminari (0.16.3)')
+          @entry2 = create(:entry, plugin: @plugin, title: 'kaminari (0.16.2)')
           allow(Gems).to receive(:dependencies).with(['kaminari']).and_return(
             [
               {:name=>"kaminari", :number=>"0.16.3", :platform=>"ruby", :dependencies=>[["actionpack", ">= 3.0.0"], ["activesupport", ">= 3.0.0"]]},
@@ -66,16 +58,8 @@ RSpec.describe Plugin, type: :model do
       context '依存先が登録されていないgemの場合(現在では使われなくなった)' do
         before do
           @plugin = create(:plugin, name: 'nokogiri')
-          @entry1 = create(:entry, plugin: @plugin,
-                                  major_version: 1,
-                                  minor_version: 6,
-                                  patch_version: '6.4'
-          )
-          @entry2 = create(:entry, plugin: @plugin,
-                                  major_version: 1,
-                                  minor_version: 6,
-                                  patch_version: '8'
-          )
+          @entry1 = create(:entry, plugin: @plugin, title: 'nokogiri (1.6.6.4)')
+          @entry2 = create(:entry, plugin: @plugin, title: 'nokogiri (1.6.8)')
           allow(Gems).to receive(:dependencies).with(['nokogiri']).and_return(
             [
               {:name=>"nokogiri", :number=>"1.6.6.4", :platform=>"ruby", :dependencies=>[["mini_portile", "~> 0.6.0"]]},
@@ -102,16 +86,8 @@ RSpec.describe Plugin, type: :model do
           @plugin1 = create(:plugin, name: 'nokogiri')
           @plugin2 = create(:plugin, name: 'pkg-config')
           @plugin3 = create(:plugin, name: 'mini_portile2')
-          @entry1 = create(:entry, plugin: @plugin1,
-                                  major_version: 1,
-                                  minor_version: 6,
-                                  patch_version: '6.4'
-          )
-          @entry2 = create(:entry, plugin: @plugin1,
-                                  major_version: 1,
-                                  minor_version: 6,
-                                  patch_version: '8'
-          )
+          @entry1 = create(:entry, plugin: @plugin1, title: 'nokogiri (1.6.6.4)')
+          @entry2 = create(:entry, plugin: @plugin1, title: 'nokogiri (1.6.8)')
           @dependency1 = create(:dependency,
             entry: @entry1,
             provisional_name: 'mini_portile',

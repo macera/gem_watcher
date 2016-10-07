@@ -303,7 +303,6 @@ class Project < ActiveRecord::Base
               new_plugin.get_gem_uri# if valid_plugin_format?
               new_plugin.save! if new_plugin.changed?
 
-              # TODO: この時、plugin.entriesを作成
               Entry.update_list(new_plugin)
               version_value = split_version(value[1])
               entry = new_plugin.entries.where(major_version: version_value[0],

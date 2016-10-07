@@ -7,9 +7,10 @@ FactoryGirl.define do
     url          "https://rubygems.org/gems/kaminari/versions/0.17.0"
     author       "author name"
     plugin       { create(:plugin, name: 'kaminari') }
-    major_version 0
-    minor_version 17
-    patch_version "0"
+    # major_version 0
+    # minor_version 17
+    # patch_version 0
+    # revision_version nil
   end
 
   factory :rails_entry, class: Entry do
@@ -19,9 +20,10 @@ FactoryGirl.define do
     url          "https://rubygems.org/gems/rails/versions/5.0.0"
     author       "author name"
     plugin       { create(:plugin, name: 'rails') }
-    major_version 5
-    minor_version 0
-    patch_version 0
+    # major_version 5
+    # minor_version 0
+    # patch_version 0
+    # revision_version nil
   end
 
   factory :nokogiri_entry, class: Entry do
@@ -34,6 +36,7 @@ FactoryGirl.define do
     major_version 1
     minor_version 6
     patch_version 8
+    revision_version nil
   end
 
   factory :vulnerability_entry, class: Entry do
@@ -46,5 +49,6 @@ FactoryGirl.define do
     major_version 1
     minor_version 6
     patch_version 7
+    revision_version nil
   end
 end

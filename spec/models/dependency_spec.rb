@@ -5,17 +5,9 @@ RSpec.describe Dependency, type: :model do
     before do
       # config 1.2.1
       @plugin1 = create(:plugin, name: 'rails')
-      @entry1 = create(:entry, plugin: @plugin1,
-                                major_version: 5,
-                                minor_version: 0,
-                                patch_version: '0'
-                        )
+      @entry1 = create(:entry, plugin: @plugin1, title: 'rails (5.0.0)')
       @plugin2 = create(:plugin, name: 'activesupport')
-      @entry_p2 = create(:entry, plugin: @plugin2,
-                                major_version: 5,
-                                minor_version: 0,
-                                patch_version: '0'
-                        )
+      @entry_p2 = create(:entry, plugin: @plugin2, title: 'activesupport (5.0.0)')
       @dependency1 = create(:dependency,
                                 entry: @entry1,
                                 provisional_name: nil,
@@ -24,11 +16,7 @@ RSpec.describe Dependency, type: :model do
                             )
 
       @plugin3 = create(:plugin, name: 'i18n')
-      @entry_p3 = create(:entry, plugin: @plugin3,
-                                major_version: 0,
-                                minor_version: 7,
-                                patch_version: '0'
-                        )
+      @entry_p3 = create(:entry, plugin: @plugin3, title: 'i18n (0.7.0)')
       @dependency2 = create(:dependency,
                                 entry: @entry_p2,
                                 provisional_name: nil,
@@ -40,21 +28,21 @@ RSpec.describe Dependency, type: :model do
       before do
         advisory = create(:security_advisory, plugin: @plugin2, patched_versions: ">= 5.0.0.1", unaffected_versions: nil)
       end
-      it ':errorを返却すること' do
-        expect(@dependency1.alert_status).to eq :error
+      it 'redを返却すること' do
+        expect(@dependency1.alert_status).to eq 'red'
       end
     end
     context '自身のgemのdependency gemに脆弱性がある場合' do
       before do
         advisory = create(:security_advisory, plugin: @plugin3, patched_versions: ">= 1.0", unaffected_versions: nil)
       end
-      it ':errorを返却すること' do
-        expect(@dependency1.alert_status).to eq :children_error
+      it 'yellowを返却すること' do
+        expect(@dependency1.alert_status).to eq 'yellow'
       end
     end
     context '自身のgemに脆弱性がない場合' do
-      it 'falseを返却すること' do
-        expect(@dependency1.alert_status).to eq false
+      it '空文字を返却すること' do
+        expect(@dependency1.alert_status).to eq ''
       end
     end
   end
@@ -63,30 +51,14 @@ RSpec.describe Dependency, type: :model do
     before do
       # config 1.2.1
       @plugin1 = create(:plugin, name: 'config')
-      @entry1 = create(:entry, plugin: @plugin1,
-                                major_version: 1,
-                                minor_version: 2,
-                                patch_version: '1'
-                        )
+      @entry1 = create(:entry, plugin: @plugin1, title: 'config (1.2.1)')
     end
     context 'pluginがある場合' do
       before do
         @plugin2 = create(:plugin, name: 'deep_merge')
-        @entry_p2_1 = create(:entry, plugin: @plugin2,
-                                major_version: 1,
-                                minor_version: 1,
-                                patch_version: '0'
-                        )
-        @entry_p2_2 = create(:entry, plugin: @plugin2,
-                                major_version: 1,
-                                minor_version: 1,
-                                patch_version: '1'
-                        )
-        @entry_p2_3 = create(:entry, plugin: @plugin2,
-                                major_version: 2,
-                                minor_version: 0,
-                                patch_version: '0'
-                        )
+        @entry_p2_1 = create(:entry, plugin: @plugin2, title: 'deep_merge (1.1.0)')
+        @entry_p2_2 = create(:entry, plugin: @plugin2, title: 'deep_merge (1.1.1)')
+        @entry_p2_3 = create(:entry, plugin: @plugin2, title: 'deep_merge (2.0.0)')
         @dependency1 = create(:dependency,
           entry: @entry1,
           provisional_name: nil,

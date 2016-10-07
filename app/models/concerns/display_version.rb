@@ -10,17 +10,4 @@ module DisplayVersion
     return version
   end
 
-  def skip_alphabetic_version_to_next(version)
-    patch = version[2]
-    return version if patch.blank?
-    match_index = patch =~ /[a-zA-Z]+/
-    if match_index
-      tmp = patch[match_index..-1]
-      version[2].slice!(match_index..-1)
-      version[2] = version[2]
-      version[3] = tmp + version[3].to_s
-    end
-    version
-  end
-
 end

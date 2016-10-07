@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Rubygems | Latest Versions for rails</title>
+  <link rel="self" href="https://rubygems.org/gems.atom"/>
+  <link rel="alternate" href="https://rubygems.org/gems"/>
+  <id>https://rubygems.org/gems</id>
+  <updated>2016-07-13T02:57:09Z</updated>
+  <author>
+  </author>
+  <entry>
+    <title>rails (4.0.a1.a1)</title>
+    <link rel="alternate" href="https://rubygems.org/gems/rails/versions/5.0.0"/>
+    <id>https://rubygems.org/gems/rails/versions/5.0.0</id>
+    <updated>2016-06-30T21:32:45Z</updated>
+    <author>
+      <name>David Heinemeier Hansson</name>
+    </author>
+    <summary>Full-stack web application framework.</summary>
+    <content type="html">
+Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration.    </content>
+  </entry>
+</feed>

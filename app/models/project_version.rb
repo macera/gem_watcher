@@ -33,6 +33,7 @@
 #
 
 class ProjectVersion < ActiveRecord::Base
+  include Versioning
   include DisplayVersion
   extend  DisplayVersion
 
@@ -91,6 +92,9 @@ class ProjectVersion < ActiveRecord::Base
   #  ])
   # }
 
+  # 指定で同じメジャーバージョンで自分より小さいマイナーバージョンはある時
+  # そのマイナーバージョン系列の更新可能なプロジェクトバージョンを取得する
+  # 4.2系の場合(4.1系が指定されてある)、4.2系バージョンを取得する
   scope :less_than_patch, ->(version) {
     v = split_version(version)
     major = v[0].to_i
@@ -105,6 +109,8 @@ class ProjectVersion < ActiveRecord::Base
    ])
   }
 
+  # 指定のメジャーバージョンの更新可能なプロジェクトバージョンを取得する
+  # 5系の場合、5系バージョンを取得する
   scope :less_than_minor, ->(version) {
     v = split_version(version)
     major = v[0].to_i
@@ -121,15 +127,23 @@ class ProjectVersion < ActiveRecord::Base
     ])
   }
 
+  # 指定で最も小さい系列で更新可能なプロジェクトバージョンを取得する
+  # 3系の場合、3系、2系、1系バージョンを取得する
   scope :less_than_major, ->(version) {
     v = split_version(version)
     major = v[0].to_i
     minor = v[1].to_i
+    patch = v[2].to_i
+    revision = v[3].to_s
     where(["
       (major_version < ?) OR
-      (major_version = ? AND minor_version < ?)",
+      (major_version = ? AND minor_version < ?) OR
+      (major_version = ? AND minor_version = ? AND patch_version < ?) OR
+      (major_version = ? AND minor_version = ? AND patch_version = ? AND (CASE WHEN revision_version IS NOT null then regexp_replace(revision_version, '[a-zA-Z]+', '0', 'g') ELSE '' END) < ?)",
       major,
-      major, minor
+      major, minor,
+      major, minor, patch,
+      major, minor, patch, revision
     ])
   }
 
