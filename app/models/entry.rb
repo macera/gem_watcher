@@ -29,7 +29,7 @@ class Entry < ActiveRecord::Base
   include Versioning
 
   belongs_to :plugin
-  has_one    :project_version
+  has_many   :project_versions
   has_many   :dependencies, dependent: :destroy
 
   has_one :latest_entry_in_requirement

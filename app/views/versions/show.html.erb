@@ -29,6 +29,23 @@
       locals: { release_feeds: @release_feeds, plugin: @plugin } %>
 
     <div class="ui segment">
+      <h2><i class="folder open icon"></i>使用中のプロジェクト</h2>
+      <div class="ui relaxed list">
+        <% @version.project_versions.each do |version| %>
+          <div class="item">
+            <i class="large folder outline middle aligned icon"></i>
+            <div class="content">
+              <span class="header">
+                <%= link_to version.project.name, project_path(version.project.id) %>
+                <span style="<%= 'color:red;' if version.newest %>"></span>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="ui segment">
       <h2><i class="external icon"></i>外部リンク</h2>
       <p>
         <%= link_to @plugin.homepage_uri || "#{Settings.feeds.rubygem}#{@plugin.name}", class: "", target: '_blank' do %>
