@@ -32,6 +32,13 @@ every 8.hours do
   #rake "security_feed:generate"
 end
 
+# 毎月27日〜31日まで0:00に実行
+every '0 0 27-31 * * ' do
+  # ログを削除
+  runner "CronLog.destroy_all"
+end
+
+
 #
 # every 4.days do
 #   runner "AnotherModel.prune_old_records"
