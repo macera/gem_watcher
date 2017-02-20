@@ -5,7 +5,7 @@ namespace :feeds do
   # rubygemorg リリースフィード取得
   task generate: [:environment] do
     Plugin.all.each do |plugin|
-      Entry.update_all(plugin)
+      Entry.update_list(plugin)
     end
   end
 
