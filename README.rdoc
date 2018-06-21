@@ -1,28 +1,35 @@
-== README
+## 現状のシステム
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+### 現在できること
+* Githubに登録しているRailsプロジェクトのGemfile.lockを参照し、脆弱性情報があるかどうか表示する
+    * Gemfile.lockがない場合はbundle installを自動的に実行して作成する
+    * Gemfileがないプロジェクトは、Gem情報を自動で登録できない。その場合、プロジェクト詳細画面より、編集画面に進み、Gem情報を登録することは可能。
+    * 現状development・test環境のみ、pathオプション指定のgemは無視される
 
-Things you may want to cover:
+* gemの脆弱性情報は[ruby-advisory-db](https://github.com/rubysec/ruby-advisory-db)を使用。cronで定期的に収集する。
 
-* Ruby version
+### 現在できないこと
+  * 通知機能(メール、Slack)
+  
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+### 使い方
+1. このアプリ用のGitLabアカウントがあり、追加したいプロジェクトに招待する(Reporter、Developer以上の権限が必要)
+2. 8時間ごとにcronが動作する
+3. サイトにアクセス
+    * **トップページ(Gem一覧)**
+        * gemから見て、更新可能なgemがあるプロジェクトや脆弱性があるgemがあるプロジェクトを確認できる
+        * [上部]Railsの指定した(設定ファイル)major、minorバージョンごとの最新バージョンを表示する
+          (現在は3系、4.*系(4.0系は除く)、5系以上。これ作った時は5.0がちょうど出たばかりの状況だった。これらは設定ファイルで変更可能。)
+        * [下部]rails以外の最新バージョンのフィードを表示する
+    * **プロジェクト(一覧)**
+        * プロジェクトから見て、更新可能なgemや脆弱性があるgemがあるかどうか確認できる
+    * **プロジェクト詳細情報**
+        * プロジェクトから見て、更新可能なgemや脆弱性があるgemを確認できる
+    * **gem詳細**
+        * バージョン関係なく使用しているプロジェクト一覧、脆弱性情報を表示。
+    * **gem version 詳細**
+        * そのバージョンがもつ脆弱性情報を表示。パッチバージョンであればその脆弱性情報を表示。
+    * **ログ**
+        * cronのログ情報を確認できる
+    * **ABOUT**
+        * このサイトの説明
