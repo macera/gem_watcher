@@ -1,7 +1,9 @@
-## 現状のシステム
+# 現状のシステム
 
 ### 現在できること
+
 * Githubに登録しているRailsプロジェクトのGemfile.lockを参照し、脆弱性情報があるかどうか表示する
+
     * Gemfile.lockがない場合はbundle installを自動的に実行して作成する
     * Gemfileがないプロジェクトは、Gem情報を自動で登録できない。その場合、プロジェクト詳細画面より、編集画面に進み、Gem情報を登録することは可能。
     * 現状development・test環境のみ、pathオプション指定のgemは無視される
@@ -9,13 +11,18 @@
 * gemの脆弱性情報は[ruby-advisory-db](https://github.com/rubysec/ruby-advisory-db)を使用。cronで定期的に収集する。
 
 ### 現在できないこと
+
   * 通知機能(メール、Slack)
   
 
 ### 使い方
+
 1. このアプリ用のGitLabアカウントがあり、追加したいプロジェクトに招待する(Reporter、Developer以上の権限が必要)
+
 2. 8時間ごとにcronが動作する
+
 3. サイトにアクセス
+
     * **トップページ(Gem一覧)**
         * gemから見て、更新可能なgemがあるプロジェクトや脆弱性があるgemがあるプロジェクトを確認できる
         * [上部]Railsの指定した(設定ファイル)major、minorバージョンごとの最新バージョンを表示する
